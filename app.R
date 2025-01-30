@@ -7,14 +7,10 @@ ui <- fluidPage(
   theme = bslib::bs_theme(bootswatch = "minty"),
   navlistPanel(
     id = "onglet",
-    ,
-    tabPanel(
-      "Recherche par carte",leafletOutput("ma_carte")
-    ),
-    tabPanel("Recherche selon caractéristiques", DTOutput("mon_tableau")),
+    tabPanel("Recherche par carte"),
+    tabPanel("Recherche selon caractéristiques"),
     tabPanel("Recherche"),
-    tabPanel(
-      "Information",
+    tabPanel("Information",
       "Cette application a été créée dans le cadre du cours Dataviz : RShiny du Master 1 ECAP.\n Pour plus d'information, contactez "
     )
   )
