@@ -1,6 +1,6 @@
 library(readr)
 
-Food_Recipe <- read_csv("data/Food_Recipe.csv")
+recette <- read_csv("data/Food_Recipe.csv")
 
 library(shiny)
 
