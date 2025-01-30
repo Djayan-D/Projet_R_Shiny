@@ -51,7 +51,17 @@ ui <- fluidPage(
                  tableOutput("recette_table")
                )
              )),
-    tabPanel("Recherche par carte"),
+    tabPanel("Recherche par carte"
+             
+             
+             
+             
+             
+             
+             
+             
+             
+             ),
     tabPanel("Recherche"),
     tabPanel("Information",
              "Cette application a été créée dans le cadre du cours Dataviz : RShiny du Master 1 ECAP.\n Pour plus d'information, contactez "
