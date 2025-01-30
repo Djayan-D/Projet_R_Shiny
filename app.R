@@ -31,6 +31,8 @@ regimes_disponibles <- c("None", unique(na.omit(recette$diet)))
 
 #---------- 3. UI ----------
 
+# inverser régime et allergènes + régime marche pas
+
 ui <- fluidPage(
   theme = bslib::bs_theme(bootswatch = "minty"),tabsetPanel(
     id = "onglet",
@@ -66,27 +68,25 @@ ui <- fluidPage(
 #---------- 4. SERVEUR ----------
 
 server <- function(input, output, session){
+
+  #----- RECHERCHE CARACTERISTIQUES -----
   observeEvent(input$search, {
     
     output$recette_table <- renderTable({
       
-      # Récupérer et nettoyer les ingrédients recherchés
       ingredients <- c(input$ing1, input$ing2, input$ing3) |> 
         tolower() |> 
         trimws()
       ingredients <- ingredients[ingredients != ""]  
       
-      # Récupérer et nettoyer les ingrédients allergènes
       allergenes <- tolower(input$allergie) |> trimws()
       allergenes <- unlist(strsplit(allergenes, "[^a-zA-Z]+"))  
       allergenes <- allergenes[allergenes != ""]  
       
-      # Récupérer le régime sélectionné
       diet_selected <- input$diet  
       
       if (length(ingredients) == 0 && length(allergenes) == 0 && diet_selected == "None") return(NULL)
       
-      # Filtrer les recettes contenant au moins un des ingrédients recherchés
       recettes_filtrees <- recette
       
       if (length(ingredients) > 0) {
@@ -94,21 +94,24 @@ server <- function(input, output, session){
           filter(sapply(tolower(ingr_name), function(ing) any(sapply(ingredients, grepl, ing, ignore.case = TRUE))))
       }
       
-      # Exclure les recettes contenant un ingrédient allergène
       if (length(allergenes) > 0) {
         recettes_filtrees <- recettes_filtrees |>
           filter(!sapply(tolower(ingr_name), function(ing) any(sapply(allergenes, grepl, ing, ignore.case = TRUE))))
       }
       
-      # Filtrer par régime alimentaire (sauf si "None" est sélectionné)
       if (diet_selected != "None") {
         recettes_filtrees <- recettes_filtrees |> filter(diet == diet_selected)
       }
       
-      # Afficher uniquement les colonnes name et description
       recettes_filtrees[, c("name", "description")]
     })
   })
+  #----- RECHERCHE PAR CARTE -----
+  
+  #----- RECHERCHE -----
+  
+  #----- INFORMATION -----
+  
 }
   
 
