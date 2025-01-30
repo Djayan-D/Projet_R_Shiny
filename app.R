@@ -1,8 +1,22 @@
+#---------- 1. PACKAGES ----------
+
 library(readr)
+library(shiny)
+
+
+
+
+
+#---------- 2. BASE DE DONNÉES ----------
 
 recette <- read_csv("data/Food_Recipe.csv")
 
-library(shiny)
+colnames(recette)[c(6:9)] <- c("ingr_name", "ingr_qt", "prep_time", "cook_time")
+
+
+
+
+#---------- 3. UI ----------
 
 ui <- fluidPage(
   theme = bslib::bs_theme(bootswatch = "minty"),
@@ -17,8 +31,20 @@ ui <- fluidPage(
   )
 )
 
+
+
+
+
+#---------- 4. SERVEUR ----------
+
 server <- function(input, output, session){
   
 }
+
+
+
+
+
+#---------- 5. LANCER L'APPLICATION ----------
 
 shinyApp(ui = ui, server = server)
