@@ -6,7 +6,7 @@ library(shiny)
 
 
 #--- Isaline
-
+library(stringr)
 
 
 
@@ -32,6 +32,8 @@ ui <- fluidPage(
                  textInput("ing1", "Ingrédient 1"),
                  textInput("ing2", "Ingrédient 2"),
                  textInput("ing3", "Ingrédient 3"),
+                 h4("Allergie"), 
+                 textInput("allergie", "Ingrédients à éviter (séparés par espace, virgule, chiffre...)"),
                  actionButton("search", "Rechercher")
                ),
                
@@ -55,18 +57,32 @@ ui <- fluidPage(
 
 server <- function(input, output, session){
   observeEvent(input$search, {
+    
     output$recette_table <- renderTable({
+      
       ingredients <- c(input$ing1, input$ing2, input$ing3) |> 
         tolower() |> 
         trimws()
+      ingredients <- ingredients[ingredients != ""] 
       
-      ingredients <- ingredients[ingredients != ""]
+      allergenes <- tolower(input$allergie) |> trimws()
+      allergenes <- unlist(strsplit(allergenes, "[^a-zA-Z]+")) 
+      allergenes <- allergenes[allergenes != ""] 
       
-      if (length(ingredients) == 0) return(NULL)
+      if (length(ingredients) == 0 && length(allergenes) == 0) return(NULL)
       
-      recettes_filtrees <- recette |>
-        filter(sapply(tolower(ingr_name), function(ing) any(sapply(ingredients, grepl, ing, ignore.case = TRUE))))
+      recettes_filtrees <- recette
       
+      if (length(ingredients) > 0) {
+        recettes_filtrees <- recettes_filtrees |>
+          filter(sapply(tolower(ingr_name), function(ing) any(sapply(ingredients, grepl, ing, ignore.case = TRUE))))
+      }
+      
+      if (length(allergenes) > 0) {
+        recettes_filtrees <- recettes_filtrees |>
+          filter(!sapply(tolower(ingr_name), function(ing) any(sapply(allergenes, grepl, ing, ignore.case = TRUE))))
+      }
+
       recettes_filtrees[, c("name", "description")]
     })
   })
