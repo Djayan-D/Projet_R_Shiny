@@ -1,17 +1,27 @@
-hhh
+library(readr)
+Food_Recipe <- read_csv("~/cours/M1 ECAP/S2/RShiny & Dataviz/Food_Recipe.csv")
 
-test
+library(shiny)
 
-test 2 
+ui <- fluidPage(
+  theme = bslib::bs_theme(bootswatch = "minty"),
+  navlistPanel(
+    id = "onglet",
+    ,
+    tabPanel(
+      "Recherche par carte",leafletOutput("ma_carte")
+    ),
+    tabPanel("Recherche selon caractéristiques", DTOutput("mon_tableau")),
+    tabPanel("Recherche"),
+    tabPanel(
+      "Information",
+      "Cette application a été créée dans le cadre du cours Dataviz : RShiny du Master 1 ECAP.\n Pour plus d'information, contactez "
+    )
+  )
+)
 
+server <- function(input, output, session){
+  
+}
 
-
-jgbkhln;hunun
-fezafarvfaefref
-zeffervezrvrezre
-ezfzefjlezrhfker
-
-
-
-test 3
-gggg
+shinyApp(ui = ui, server = server)
