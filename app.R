@@ -1,7 +1,13 @@
 #---------- 1. PACKAGES ----------
+#--- Djayan
 
 library(readr)
 library(shiny)
+library(deeplr)
+
+
+#--- Isaline
+
 
 
 
@@ -13,7 +19,7 @@ recette <- read_csv("data/Food_Recipe.csv")
 
 colnames(recette)[c(6:9)] <- c("ingr_name", "ingr_qt", "prep_time", "cook_time")
 
-
+str(data)
 
 
 #---------- 3. UI ----------
