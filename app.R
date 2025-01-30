@@ -3,7 +3,6 @@
 
 library(readr)
 library(shiny)
-library(deeplr)
 
 
 #--- Isaline
