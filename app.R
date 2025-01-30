@@ -18,7 +18,14 @@ recette <- read_csv("data/Food_Recipe.csv")
 
 colnames(recette)[c(6:9)] <- c("ingr_name", "ingr_qt", "prep_time", "cook_time")
 
-str(data)
+str(recette)
+
+recette$cuisine <- as.factor(recette$cuisine)
+recette$course <- as.factor(recette$course)
+recette$diet <- as.factor(recette$diet)
+
+
+
 
 
 #---------- 3. UI ----------
