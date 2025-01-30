@@ -1,5 +1,5 @@
 library(readr)
-Food_Recipe <- read_csv("~/cours/M1 ECAP/S2/RShiny & Dataviz/Food_Recipe.csv")
+Food_Recipe <- read_csv("data/Food_Recipe.csv")
 
 library(shiny)
 
