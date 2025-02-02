@@ -9,6 +9,7 @@ library(shiny)
 library(stringr)
 library(DT)
 library(dplyr)
+library(shinyWidgets)
 
 
 
@@ -24,6 +25,11 @@ recette$cuisine <- as.factor(recette$cuisine)
 recette$course <- as.factor(recette$course)
 
 regimes_disponibles <- c("None", unique(na.omit(recette$diet)))
+
+recette$total_time <- recette$prep_time + recette$cook_time
+
+temps_labels <- c("0 min" = 0, "15 min" = 15, "30 min" = 30, "45 min" = 45,
+                  "1h" = 60, "1h15" = 75, "1h30" = 90, "1h45" = 105, "2h ou plus" = 120)
 
 #---------- 3. UI ----------
 
@@ -47,8 +53,9 @@ tabPanel("Recherche selon caractéristiques",
              h4("Allergènes"), 
              textInput("allergie", "Ingrédients à éviter"),
              
-             h4("Temps de préparation maximal"),
-             sliderInput("max_prep_time", "Temps (minutes) :", min = 0, max = max(recette$prep_time, na.rm = TRUE), value = max(recette$prep_time, na.rm = TRUE)),
+             h4("Temps de préparation (cuisson comprise) maximal"),
+             sliderTextInput("max_prep_time", "Temps maximal :", 
+                             choices = names(temps_labels), selected = "2h ou plus"),
              
              actionButton("search", "Rechercher")
            ),
@@ -64,8 +71,17 @@ tabPanel("Recherche selon caractéristiques",
 
 
 # ----- BARRE DE RECHERCHE -----
-    tabPanel("Recherche"),
-
+    tabPanel("Recherche",
+         sidebarLayout(
+           sidebarPanel(
+             h4("Recherche par nom de recette"),
+             textInput("recette_search", "Nom de la recette :"),
+             actionButton("search_by_name", "Rechercher")
+           ),
+           mainPanel(
+             uiOutput("recette_details_search")
+           )
+         )),
 
 # ----- INFORMATION -----
     tabPanel("Information",
@@ -85,6 +101,11 @@ server <- function(input, output, session){
   #----- RECHERCHE CARACTERISTIQUES -----
   recettes_filtrees <- reactiveVal(data.frame())  # Stocke les recettes filtrées
   selected_recipe <- reactiveVal(NULL)
+
+  output$formatted_time <- renderText({
+    label <- names(temps_labels)[temps_labels == input$max_prep_time]
+    if (length(label) > 0) label else "Inconnu"
+  })
   
   observeEvent(input$search, {
     ingredients <- c(input$ing1, input$ing2, input$ing3) |> 
@@ -97,7 +118,7 @@ server <- function(input, output, session){
     allergenes <- allergenes[allergenes != ""]  
     
     diet_selected <- input$diet  
-    max_prep <- input$max_prep_time  
+    max_prep <- temps_labels[input$max_prep_time]  
     
     recettes_filtrees_data <- recette
     
@@ -116,7 +137,7 @@ server <- function(input, output, session){
     }
     
     if (!is.null(max_prep) && !is.na(max_prep)) {
-      recettes_filtrees_data <- recettes_filtrees_data |> filter(prep_time <= max_prep)
+      recettes_filtrees_data <- recettes_filtrees_data |> filter(total_time <= max_prep)
     }
     
     recettes_filtrees(recettes_filtrees_data) 
@@ -154,12 +175,15 @@ server <- function(input, output, session){
     tagList(
       div(style = "border: 2px solid #ccc; padding: 15px; margin-bottom: 20px; background-color: #f9f9f9;",
           fluidRow(
-            column(3, img(src = recipe$image_url, width = "100%")), 
-            column(9, 
-                   h3(recipe$name),
+            column(4, 
                    p(strong("Régime : "), recipe$diet),
                    p(strong("Temps de préparation : "), recipe$prep_time, " min"),
                    p(strong("Temps de cuisson : "), recipe$cook_time, " min")
+            ),
+            column(8, 
+                   h3(recipe$name),
+                   img(src = recipe$image_url, width = "100%", 
+                       style = "max-height: 300px; object-fit: cover; display: block; margin: 0 auto;")  
             )
           ),
           h4("Ingrédients"),
@@ -170,9 +194,65 @@ server <- function(input, output, session){
     )
   })
   
+
+  
   #----- RECHERCHE PAR CARTE -----
   
   #----- BARRE DE RECHERCHE -----
+  observeEvent(input$search_by_name, {
+    recipe_name_search <- input$recette_search
+    
+    if (recipe_name_search != "") {
+      recette_found <- recette |>
+        filter(str_to_lower(name) == str_to_lower(recipe_name_search))
+      
+      if (nrow(recette_found) > 0) {
+        selected_recipe(recette_found)
+      } else {
+        selected_recipe(NULL)
+        showModal(modalDialog(
+          title = "Recette non trouvée",
+          "Aucune recette ne correspond à ce nom. Veuillez vérifier l'orthographe.",
+          easyClose = TRUE,
+          footer = NULL
+        ))
+      }
+    }
+  })
+  
+  output$recette_details_search <- renderUI({
+    req(selected_recipe())
+    
+    recipe <- selected_recipe()
+    
+    ingredients_list <- strsplit(recipe$ingr_name, ",")[[1]]
+    quantities_list <- strsplit(recipe$ingr_qt, ",")[[1]]
+    
+    ingredients_html <- lapply(1:length(ingredients_list), function(i) {
+      paste0("<li>", ingredients_list[i], " - ", quantities_list[i], "</li>")
+    }) |> paste(collapse = "")
+    
+    tagList(
+      div(style = "border: 2px solid #ccc; padding: 15px; margin-bottom: 20px; background-color: #f9f9f9;",
+          fluidRow(
+            column(4, 
+                   p(strong("Régime : "), recipe$diet),
+                   p(strong("Temps de préparation : "), recipe$prep_time, " min"),
+                   p(strong("Temps de cuisson : "), recipe$cook_time, " min")
+            ),
+            column(8, 
+                   h3(recipe$name),
+                   img(src = recipe$image_url, width = "100%", 
+                       style = "max-height: 300px; object-fit: cover; display: block; margin: 0 auto;")  
+            )
+          ),
+          h4("Ingrédients"),
+          HTML(paste0("<ul>", ingredients_html, "</ul>")),
+          h4("Instructions"),
+          p(recipe$instructions)
+      )
+    )
+  })
   
   #----- INFORMATION -----
   
