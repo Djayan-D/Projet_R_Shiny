@@ -5,12 +5,15 @@ library(readr)
 library(shiny)
 
 
+
 #----- Isaline -----
 
 library(stringr)
 library(DT)
 library(dplyr)
 library(shinyWidgets)
+
+
 
 
 
@@ -31,6 +34,10 @@ recette$total_time <- recette$prep_time + recette$cook_time
 
 temps_labels <- c("0 min" = 0, "15 min" = 15, "30 min" = 30, "45 min" = 45,
                   "1h" = 60, "1h15" = 75, "1h30" = 90, "1h45" = 105, "2h ou plus" = 120)
+
+
+
+
 
 #---------- 3. UI ----------
 
@@ -258,7 +265,6 @@ server <- function(input, output, session){
   #----- INFORMATION -----
   
 }
-  
 
 
 
