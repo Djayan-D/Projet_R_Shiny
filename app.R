@@ -3,6 +3,10 @@
 
 library(readr)
 library(shiny)
+library(leaflet)
+library(rnaturalearth)
+library(sf)
+
 
 
 
@@ -81,6 +85,7 @@ ui <- fluidPage(
     # ----- RECHERCHE PAR CARTE -----
     
     tabPanel("Recherche par carte"),
+    
     
     
     # ----- BARRE DE RECHERCHE -----
@@ -214,6 +219,8 @@ server <- function(input, output, session){
 
   
   #----- RECHERCHE PAR CARTE -----
+
+
   
   
   #----- BARRE DE RECHERCHE -----
