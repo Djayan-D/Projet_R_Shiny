@@ -46,52 +46,60 @@ temps_labels <- c("0 min" = 0, "15 min" = 15, "30 min" = 30, "45 min" = 45,
 ui <- fluidPage(
   theme = bslib::bs_theme(bootswatch = "minty"),tabsetPanel(
     id = "onglet",
-# ----- RECHERCHE PAR CARACTERISTIQUES -----
-tabPanel("Recherche selon caractéristiques",
-         sidebarLayout(
-           sidebarPanel(
-             h4("Choix du régime"),  
-             selectInput("diet", "Régime alimentaire :", choices = regimes_disponibles, selected = "None"),
-             
-             h4("Ingrédients souhaités"),
-             textInput("ing1", "Ingrédient 1"),
-             textInput("ing2", "Ingrédient 2"),
-             textInput("ing3", "Ingrédient 3"),
-             
-             h4("Allergènes"), 
-             textInput("allergie", "Ingrédients à éviter"),
-             
-             h4("Temps de préparation (cuisson comprise) maximal"),
-             sliderTextInput("max_prep_time", "Temps maximal :", 
-                             choices = names(temps_labels), selected = "2h ou plus"),
-             
-             actionButton("search", "Rechercher")
-           ),
-           
-           mainPanel(
-             uiOutput("recette_details"),
-             DTOutput("recette_table")
-           )
-         )),
-
-# ----- RECHERCHE PAR CARTE -----
+    
+    
+    # ----- RECHERCHE PAR CARACTERISTIQUES -----
+    
+    tabPanel("Recherche selon caractéristiques",
+             sidebarLayout(
+               sidebarPanel(
+                 h4("Choix du régime"),  
+                 selectInput("diet", "Régime alimentaire :", choices = regimes_disponibles, selected = "None"),
+                 
+                 h4("Ingrédients souhaités"),
+                 textInput("ing1", "Ingrédient 1"),
+                 textInput("ing2", "Ingrédient 2"),
+                 textInput("ing3", "Ingrédient 3"),
+                 
+                 h4("Allergènes"), 
+                 textInput("allergie", "Ingrédients à éviter"),
+                 
+                 h4("Temps de préparation (cuisson comprise) maximal"),
+                 sliderTextInput("max_prep_time", "Temps maximal :", 
+                                 choices = names(temps_labels), selected = "2h ou plus"),
+                 
+                 actionButton("search", "Rechercher")
+               ),
+               
+               mainPanel(
+                 uiOutput("recette_details"),
+                 DTOutput("recette_table")
+               )
+             )),
+    
+    
+    # ----- RECHERCHE PAR CARTE -----
+    
     tabPanel("Recherche par carte"),
-
-
-# ----- BARRE DE RECHERCHE -----
+    
+    
+    # ----- BARRE DE RECHERCHE -----
+    
     tabPanel("Recherche",
-         sidebarLayout(
-           sidebarPanel(
-             h4("Recherche par nom de recette"),
-             textInput("recette_search", "Nom de la recette :"),
-             actionButton("search_by_name", "Rechercher")
-           ),
-           mainPanel(
-             uiOutput("recette_details_search")
-           )
-         )),
-
-# ----- INFORMATION -----
+             sidebarLayout(
+               sidebarPanel(
+                 h4("Recherche par nom de recette"),
+                 textInput("recette_search", "Nom de la recette :"),
+                 actionButton("search_by_name", "Rechercher")
+               ),
+               mainPanel(
+                 uiOutput("recette_details_search")
+               )
+             )),
+    
+    
+    # ----- INFORMATION -----
+    
     tabPanel("Information",
              "Cette application a été créée dans le cadre du cours Dataviz : RShiny du Master 1 ECAP.\n Pour plus d'information, contactez "
     )
@@ -107,6 +115,7 @@ tabPanel("Recherche selon caractéristiques",
 server <- function(input, output, session){
 
   #----- RECHERCHE CARACTERISTIQUES -----
+  
   recettes_filtrees <- reactiveVal(data.frame())  # Stocke les recettes filtrées
   selected_recipe <- reactiveVal(NULL)
 
@@ -206,7 +215,9 @@ server <- function(input, output, session){
   
   #----- RECHERCHE PAR CARTE -----
   
+  
   #----- BARRE DE RECHERCHE -----
+  
   observeEvent(input$search_by_name, {
     recipe_name_search <- input$recette_search
     
