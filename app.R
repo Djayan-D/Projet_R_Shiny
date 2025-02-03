@@ -1,11 +1,12 @@
 #---------- 1. PACKAGES ----------
-#--- Djayan
+#----- Djayan -----
 
 library(readr)
 library(shiny)
 
 
-#--- Isaline
+#----- Isaline -----
+
 library(stringr)
 library(DT)
 library(dplyr)
@@ -15,7 +16,7 @@ library(shinyWidgets)
 
 #---------- 2. BASE DE DONNÉES ----------
 
-recette <- read_csv("data/Food_Recipe.csv")
+recette <- read_csv("data/recettes.csv")
 
 colnames(recette)[c(6:9)] <- c("ingr_name", "ingr_qt", "prep_time", "cook_time")
 
