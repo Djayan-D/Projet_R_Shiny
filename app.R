@@ -285,11 +285,27 @@ server <- function(input, output, session){
       setView(lng = 0, lat = 20, zoom = 2) 
   })
   
-  # ---- Filtrage des recettes selon la région sélectionnée ----
-  recettes_par_carte <- reactive({
-    recette %>% filter(cuisine == input$region_select)
+  # ---- Mise à jour du menu déroulant quand un pays est cliqué ----
+  observeEvent(input$map_shape_click, {
+    clicked_country <- input$map_shape_click$id  # Récupère le pays cliqué
+    
+    if (!is.null(clicked_country) && clicked_country %in% recette$cuisine) {
+      updateSelectInput(session, "region_select", selected = clicked_country)
+    }
   })
   
+  # ---- Filtrage des recettes selon la région ou le pays sélectionné ----
+  recettes_par_carte <- reactive({
+    selected_region <- input$region_select
+    
+    if (selected_region == "Neutre") {
+      return(data.frame())  # Retourne un tableau vide si "Neutre" est sélectionné
+    } else {
+      return(recette %>% filter(cuisine == selected_region))
+    }
+  })
+  
+  # ---- Mise à jour du tableau en fonction du pays sélectionné ----
   output$table_carte <- renderDT({
     data <- recettes_par_carte()
     if (nrow(data) == 0) return(NULL)
@@ -301,6 +317,7 @@ server <- function(input, output, session){
               options = list(pageLength = 5))
   })
   
+  # ---- Sélection d'une recette et redirection vers l'onglet "Recette" ----
   observeEvent(input$table_carte_rows_selected, {
     selected_row <- input$table_carte_rows_selected
     if (length(selected_row) > 0) {
@@ -309,6 +326,7 @@ server <- function(input, output, session){
     }
   })
   
+  # ---- Affichage des détails de la recette sélectionnée ----
   output$recette_details_carte <- renderUI({
     req(selected_recipe())
     recipe <- selected_recipe()
@@ -323,6 +341,7 @@ server <- function(input, output, session){
       p(recipe$instructions)
     )
   })
+  
   
   
   
