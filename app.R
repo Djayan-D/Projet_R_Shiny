@@ -4,8 +4,11 @@
 library(readr)
 library(shiny)
 library(leaflet)
-library(rnaturalearth)
 library(sf)
+library(rnaturalearth)
+library(rnaturalearthdata)
+library(shinyjs)
+
 
 
 
@@ -28,9 +31,6 @@ recette <- read_csv("data/recettes.csv")
 colnames(recette)[c(6:9)] <- c("ingr_name", "ingr_qt", "prep_time", "cook_time")
 
 str(recette)
-
-recette$cuisine <- as.factor(recette$cuisine)
-recette$course <- as.factor(recette$course)
 
 regimes_disponibles <- c("None", unique(na.omit(recette$diet)))
 
@@ -84,7 +84,31 @@ ui <- fluidPage(
     
     # ----- RECHERCHE PAR CARTE -----
     
-    tabPanel("Recherche par carte"),
+    tabPanel("Recherche par carte",
+             tabsetPanel(
+               id = "carte_tabs",
+               tabPanel("Carte",
+                        sidebarLayout(
+                          sidebarPanel(
+                            h4("Choix de la région"),
+                            selectInput("region_select", "Sélectionnez une région :", 
+                                        choices = c("Neutre", unique(na.omit(recette$cuisine))),
+                                        selected = "Neutre"),
+                            actionButton("reset_map", "Réinitialiser la carte")
+                          ),
+                          mainPanel(
+                            leafletOutput("map", height = "500px"),
+                            DTOutput("table_carte")
+                          )
+                        )
+               ),
+               tabPanel("Recette", 
+                        uiOutput("recette_details_carte")
+               )
+             )
+    ),
+    
+    
     
     
     
@@ -219,6 +243,89 @@ server <- function(input, output, session){
 
   
   #----- RECHERCHE PAR CARTE -----
+  
+  # ---- Définition des régions pour le zoom ----
+  region_coords <- list(
+    "Inde" = list(lat = 22, lon = 78, zoom = 5),
+    "Inde du Nord" = list(lat = 28, lon = 77, zoom = 6),
+    "Inde du Sud" = list(lat = 12, lon = 78, zoom = 6),
+    "France" = list(lat = 46, lon = 2, zoom = 5),
+    "Europe" = list(lat = 50, lon = 10, zoom = 4),
+    "Neutre" = list(lat = 20, lon = 0, zoom = 2)  
+  )
+  
+  # ---- Chargement des formes des pays ----
+  world <- ne_countries(scale = "medium", returnclass = "sf")
+  
+  # ---- Création de la carte Leaflet ----
+  output$map <- renderLeaflet({
+    leaflet(world) %>%
+      addTiles() %>%
+      addPolygons(
+        fillColor = ~colorFactor("viridis", world$region_un)(region_un),
+        fillOpacity = 0.6,
+        weight = 1,
+        highlight = highlightOptions(weight = 3, color = "#666", fillOpacity = 0.8),
+        label = ~name,
+        layerId = ~name
+      )
+  })
+  
+  # ---- Mise à jour du zoom sur sélection ----
+  observeEvent(input$region_select, {
+    region <- input$region_select
+    if (!is.null(region_coords[[region]])) {
+      leafletProxy("map") %>%
+        setView(lng = region_coords[[region]]$lon, lat = region_coords[[region]]$lat, zoom = region_coords[[region]]$zoom)
+    }
+  })
+  
+  observeEvent(input$reset_map, {
+    leafletProxy("map") %>%
+      setView(lng = 0, lat = 20, zoom = 2) 
+  })
+  
+  # ---- Filtrage des recettes selon la région sélectionnée ----
+  recettes_par_carte <- reactive({
+    recette %>% filter(cuisine == input$region_select)
+  })
+  
+  output$table_carte <- renderDT({
+    data <- recettes_par_carte()
+    if (nrow(data) == 0) return(NULL)
+    
+    data$description <- substr(data$description, 1, 100)  # Affiche uniquement les 100 premiers caractères
+    
+    datatable(data[, c("name", "description", "prep_time")],
+              selection = "single",
+              options = list(pageLength = 5))
+  })
+  
+  observeEvent(input$table_carte_rows_selected, {
+    selected_row <- input$table_carte_rows_selected
+    if (length(selected_row) > 0) {
+      selected_recipe(recettes_par_carte()[selected_row, ])
+      updateTabsetPanel(session, "carte_tabs", selected = "Recette")
+    }
+  })
+  
+  output$recette_details_carte <- renderUI({
+    req(selected_recipe())
+    recipe <- selected_recipe()
+    
+    tagList(
+      h3(recipe$name),
+      p(strong("Régime : "), recipe$diet),
+      p(strong("Temps de préparation : "), recipe$prep_time, " min"),
+      p(strong("Temps de cuisson : "), recipe$cook_time, " min"),
+      img(src = recipe$image_url, width = "100%"),
+      h4("Instructions"),
+      p(recipe$instructions)
+    )
+  })
+  
+  
+  
 
 
   
