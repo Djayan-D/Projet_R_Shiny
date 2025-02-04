@@ -142,12 +142,12 @@ ui <- fluidPage(
 #---------- 4. SERVEUR ----------
 
 server <- function(input, output, session){
-
+  
   #----- RECHERCHE CARACTERISTIQUES -----
   
   recettes_filtrees <- reactiveVal(data.frame())  # Stocke les recettes filtrées
   selected_recipe <- reactiveVal(NULL)
-
+  
   output$formatted_time <- renderText({
     label <- names(temps_labels)[temps_labels == input$max_prep_time]
     if (length(label) > 0) label else "Inconnu"
@@ -240,7 +240,7 @@ server <- function(input, output, session){
     )
   })
   
-
+  
   
   #----- RECHERCHE PAR CARTE -----
   
@@ -345,8 +345,8 @@ server <- function(input, output, session){
   
   
   
-
-
+  
+  
   
   
   #----- BARRE DE RECHERCHE -----
