@@ -242,10 +242,9 @@ server <- function(input, output, session){
   
   
   
-  #----- RECHERCHE PAR CARTE -----
+  # ---- RECHERCHE PAR CARTE ----
   
   # ---- Définition des régions pour le zoom ----
-  
   region_coords <- list(
     "Inde" = list(lat = 22, lon = 78, zoom = 5),
     "Inde du Nord" = list(lat = 28, lon = 77, zoom = 6),
@@ -258,59 +257,114 @@ server <- function(input, output, session){
   # ---- Chargement des formes des pays ----
   world <- ne_countries(scale = "medium", returnclass = "sf")
   
-  # ---- Création de la carte Leaflet ----
+  # Créer un mappage manuel des noms français vers anglais
+  country_mapping_fr_to_en <- c(
+    "Inde du Nord" = "India",
+    "Inde" = "India",
+    "Inde du Sud" = "India",
+    "Europe" = "Europe",
+    "Continental" = "Continental Europe",
+    "Moyen-Orient" = "Middle East",
+    "Népal" = "Nepal",
+    "Inde du Nord-Est" = "India",
+    "Thaïlande" = "Thailand",
+    "Italie" = "Italy",
+    "Chine" = "China",
+    "Méditerranée" = "Mediterranean",
+    "Asie" = "Asia",
+    "Indonésie" = "Indonesia",
+    "Vietnam" = "Vietnam",
+    "États-Unis" = "United States",
+    "Grèce" = "Greece",
+    "Pakistan" = "Pakistan",
+    "France" = "France",
+    "Mexique" = "Mexico",
+    "Japon" = "Japan",
+    "Afrique" = "Africa",
+    "Sri Lanka" = "Sri Lanka",
+    "Suède" = "Sweden",
+    "Afghanistan" = "Afghanistan",
+    "Inde du Centre" = "India",
+    "Caraïbes" = "Caribbean",
+    "Corée" = "Korea",
+    "Malaisie" = "Malaysia",
+    "Birmanie" = "Myanmar",
+    "Royaume-Uni" = "United Kingdom",
+    "Bangladesh" = "Bangladesh",
+    "Singapour" = "Singapore"
+  )
+  
+  # Appliquer le mappage aux noms des pays dans recette$cuisine
+  recette$cuisine_english <- recode(recette$cuisine, !!!country_mapping_fr_to_en)
+  
+  # Normaliser les noms des pays dans recette$cuisine_english
+  normalized_recipes_cuisine <- tolower(trimws(recette$cuisine_english))
+  
+  # Normaliser les noms des pays dans world
+  normalized_world_names <- tolower(trimws(world$name))
+  
+  # Liste des pays avec des recettes, en normalisant les noms
+  countries_with_recipes <- unique(normalized_recipes_cuisine)
+  
+  # Filtrer les pays qui ont des recettes
+  world_with_recipes <- world[normalized_world_names %in% countries_with_recipes, ]
+  
+  # Créer un mappage inverse pour convertir les noms anglais en français
+  country_mapping_en_to_fr <- names(country_mapping_fr_to_en)
+  names(country_mapping_en_to_fr) <- country_mapping_fr_to_en
+  
+  # Créer la carte Leaflet
   output$map <- renderLeaflet({
     leaflet(world) %>%
-      addTiles(options = tileOptions(minZoom = 2, maxZoom = 5)) %>%  # Limiter le zoom entre 2 et 5
+      addTiles(options = tileOptions(minZoom = 2, maxZoom = 5)) %>%
       addPolygons(
-        fillColor = ~colorFactor("viridis", world$region_un)(region_un),
+        data = world_with_recipes,
+        fillColor = ~colorFactor("viridis", world_with_recipes$region_un)(world_with_recipes$region_un),
         fillOpacity = 0.6,
         weight = 1,
         highlight = highlightOptions(weight = 3, color = "#666", fillOpacity = 0.8),
         label = ~name,
         layerId = ~name
       ) %>%
-      setView(lng = 0, lat = 20, zoom = 2) %>%  # Centrer la carte sur un planisphère global avec un zoom modéré
+      setView(lng = 0, lat = 20, zoom = 2) %>%
       setMaxBounds(
         lng1 = -180, lat1 = -85,  # Coin supérieur gauche
         lng2 = 180, lat2 = 85     # Coin inférieur droit
       )
   })
   
-  
-  # Pour la mise à jour du zoom en fonction de la région, utilisez la même configuration pour limiter le zoom.
-  observeEvent(input$region_select, {
-    region <- input$region_select
-    if (!is.null(region_coords[[region]])) {
-      leafletProxy("map") %>%
-        setView(lng = region_coords[[region]]$lon, lat = region_coords[[region]]$lat, zoom = region_coords[[region]]$zoom) %>%
-        addTiles(options = tileOptions(minZoom = 2, maxZoom = 5))  # Limiter le zoom entre 2 et 5
-    }
-  })
-  
-  
-  
-  
   # ---- Mise à jour du zoom sur sélection ----
-  observeEvent(input$region_select, {
-    region <- input$region_select
-    if (!is.null(region_coords[[region]])) {
-      leafletProxy("map") %>%
-        setView(lng = region_coords[[region]]$lon, lat = region_coords[[region]]$lat, zoom = region_coords[[region]]$zoom)
-    }
-  })
+  # Mise à jour de la vue lors du clic sur un pays
+observeEvent(input$map_shape_click, {
+  clicked_country <- input$map_shape_click$id  # Récupère l'ID du pays cliqué
   
-  observeEvent(input$reset_map, {
+  # Vérifiez si l'ID du pays cliqué existe dans le mappage de coordonnées
+  country_coords <- world_with_recipes %>%
+    filter(name == clicked_country) %>%
+    select(geometry) %>%
+    st_centroid() %>%
+    st_coordinates()  # Récupère les coordonnées géométriques du pays
+  
+  # Si des coordonnées sont trouvées, effectuez le zoom sur le pays
+  if (nrow(country_coords) > 0) {
+    lng <- country_coords[1, "X"]
+    lat <- country_coords[1, "Y"]
+    
+    # Zoom sur le pays avec un niveau de zoom plus élevé (ex. 6 ou 7)
     leafletProxy("map") %>%
-      setView(lng = 0, lat = 20, zoom = 2) 
-  })
+      setView(lng = lng, lat = lat, zoom = 6)
+  }
+})
+
   
   # ---- Mise à jour du menu déroulant quand un pays est cliqué ----
   observeEvent(input$map_shape_click, {
     clicked_country <- input$map_shape_click$id  # Récupère le pays cliqué
     
-    if (!is.null(clicked_country) && clicked_country %in% recette$cuisine) {
-      updateSelectInput(session, "region_select", selected = clicked_country)
+    # Convertir le nom en anglais (clicked_country) en français en utilisant le mappage inverse
+    if (!is.null(clicked_country) && clicked_country %in% names(country_mapping_en_to_fr)) {
+      french_country_name <- country_mapping_en_to_fr[clicked_country]
+      updateSelectInput(session, "region_select", selected = french_country_name)
     }
   })
   
@@ -347,7 +401,6 @@ server <- function(input, output, session){
   })
   
   # ---- Affichage des détails de la recette sélectionnée ----
-  
   output$recette_details_carte <- renderUI({
     req(selected_recipe())  # Assurez-vous qu'une recette soit sélectionnée
     recipe <- selected_recipe()
@@ -380,6 +433,10 @@ server <- function(input, output, session){
       )
     )
   })
+  
+  
+  
+  
   
   
   
