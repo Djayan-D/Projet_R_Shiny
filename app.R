@@ -279,6 +279,61 @@ server <- function(input, output, session){
     "Singapour" = list(lat = 1.3521, lon = 103.8198, zoom = 8)
   )
   
+  continents_pays <- list(
+    "Afrique" = c(
+      "Algérie", "Angola", "Bénin", "Botswana", "Burkina Faso", "Burundi", 
+      "Cabo Verde", "Cameroun", "République Centrafricaine", "Comores", 
+      "République Démocratique du Congo", "Congo", "Côte d'Ivoire", 
+      "Djibouti", "Égypte", "Érythrée", "Eswatini", "Éthiopie", "Gabon", 
+      "Gambie", "Ghana", "Guinée", "Guinée-Bissau", "Kenya", "Lesotho", 
+      "Liberia", "Libye", "Madagascar", "Malawi", "Mali", "Mauritanie", 
+      "Maurice", "Mozambique", "Namibie", "Niger", "Nigéria", "Rwanda", 
+      "Sao Tomé-et-Principe", "Sénégal", "Seychelles", "Sierra Leone", 
+      "Somalie", "Afrique du Sud", "Soudan", "Soudan du Sud", "Tanzanie", 
+      "Togo", "Tunisie", "Ouganda", "Zambie", "Zimbabwe"
+    ),
+    "Asie" = c(
+      "Afghanistan", "Arménie", "Azerbaïdjan", "Bahreïn", "Bangladesh", 
+      "Bhoutan", "Brunei", "Birmanie", "Cambodge", "Chine", "Chypre", 
+      "Géorgie", "Inde", "Indonésie", "Iran", "Irak", "Israël", "Japon", 
+      "Jordanie", "Kazakhstan", "Koweït", "Kyrgyzstan", "Laos", "Liban", 
+      "Malaisie", "Maldives", "Mongolie", "Népal", "Corée du Nord", 
+      "Corée du Sud", "Oman", "Pakistan", "Palestine", "Philippines", 
+      "Qatar", "Arabie Saoudite", "Singapour", "Sri Lanka", "Syrie", 
+      "Tadjikistan", "Taïwan", "Tchétchénie", "Thaïlande", "Timor-Leste", 
+      "Turkménistan", "Émirats Arabes Unis", "Ouzbékistan", "Vietnam", 
+      "Yémen"
+    ),
+    "Europe" = c(
+      "Albanie", "Allemagne", "Andorre", "Arménie", "Autriche", "Azerbaïdjan", 
+      "Belgique", "Biélorussie", "Bosnie-Herzégovine", "Bulgarie", "Chypre", 
+      "Croatie", "Danemark", "Estonie", "Finlande", "France", "Géorgie", 
+      "Grèce", "Hongrie", "Irlande", "Islande", "Italie", "Kazakhstan", 
+      "Kosovo", "Lettonie", "Liechtenstein", "Lituanie", "Luxembourg", 
+      "Malte", "Moldavie", "Monaco", "Monténégro", "Pays-Bas", "Macédoine du Nord", 
+      "Norvège", "Pologne", "Portugal", "Roumanie", "Russie", "Saint-Marin", 
+      "Serbie", "Slovaquie", "Slovénie", "Espagne", "Suède", "Suisse", 
+      "Ukraine", "Royaume-Uni", "Serbie", "Arménie"
+    ),
+    "Amérique du Nord" = c(
+      "Canada", "États-Unis", "Mexique"
+    ),
+    "Amérique du Sud" = c(
+      "Argentine", "Bolivie", "Brésil", "Chili", "Colombie", "Équateur", 
+      "Guyana", "Paraguay", "Pérou", "Suriname", "Uruguay", "Venezuela"
+    ),
+    "Océanie" = c(
+      "Australie", "Fidji", "Kiribati", "Marshall", "Micronésie", "Nauru", 
+      "Nouvelle-Calédonie", "Papouasie-Nouvelle-Guinée", "Samoa", "Îles Salomon", 
+      "Tonga", "Tuvalu", "Vanuatu"
+    ),
+    "Antarctique" = c(
+      "Antarctique"  # L'Antarctique ne possède pas de pays, mais des bases scientifiques internationales
+    )
+  )
+  
+  
+  
   # ---- Chargement des formes des pays ----
   world <- ne_countries(scale = "medium", returnclass = "sf")
   
@@ -424,6 +479,8 @@ server <- function(input, output, session){
       )
     )
   })
+  
+  
   
   
   
