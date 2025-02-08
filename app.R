@@ -246,12 +246,37 @@ server <- function(input, output, session){
   
   # ---- Définition des régions pour le zoom ----
   region_coords <- list(
-    "Inde" = list(lat = 22, lon = 78, zoom = 5),
     "Inde du Nord" = list(lat = 28, lon = 77, zoom = 6),
+    "Inde" = list(lat = 22, lon = 78, zoom = 5),
     "Inde du Sud" = list(lat = 12, lon = 78, zoom = 6),
-    "France" = list(lat = 46, lon = 2, zoom = 5),
     "Europe" = list(lat = 50, lon = 10, zoom = 4),
-    "Neutre" = list(lat = 20, lon = 0, zoom = 2)  
+    "Continental" = list(lat = 45, lon = 7, zoom = 5),  # Position approximative pour l'Europe continentale
+    "Moyen-Orient" = list(lat = 25, lon = 45, zoom = 5),  # Localisation générale du Moyen-Orient
+    "Népal" = list(lat = 28, lon = 84, zoom = 7),
+    "Inde du Nord-Est" = list(lat = 26, lon = 91, zoom = 7),
+    "Thaïlande" = list(lat = 15, lon = 100, zoom = 6),
+    "Italie" = list(lat = 42, lon = 12, zoom = 6),
+    "Chine" = list(lat = 35, lon = 105, zoom = 5),
+    "Méditerranée" = list(lat = 35, lon = 18, zoom = 5),  # Position générale de la Méditerranée
+    "Asie" = list(lat = 30, lon = 100, zoom = 3),  # Position générale pour l'Asie
+    "Indonésie" = list(lat = -5, lon = 120, zoom = 6),
+    "Vietnam" = list(lat = 14, lon = 108, zoom = 6),
+    "États-Unis" = list(lat = 37, lon = -95, zoom = 4),
+    "France" = list(lat = 46, lon = 2, zoom = 5),
+    "Mexique" = list(lat = 23, lon = -102, zoom = 5),
+    "Japon" = list(lat = 36, lon = 138, zoom = 6),
+    "Afrique" = list(lat = 0, lon = 20, zoom = 3),  # Position approximative pour l'Afrique
+    "Sri Lanka" = list(lat = 7, lon = 81, zoom = 7),
+    "Suède" = list(lat = 60, lon = 18, zoom = 5),
+    "Afghanistan" = list(lat = 33, lon = 65, zoom = 6),
+    "Inde du Centre" = list(lat = 22, lon = 80, zoom = 6),
+    "Caraïbes" = list(lat = 15, lon = -60, zoom = 5),  # Position générale des Caraïbes
+    "Corée" = list(lat = 37, lon = 127, zoom = 6),
+    "Malaisie" = list(lat = 3, lon = 101, zoom = 6),
+    "Birmanie" = list(lat = 21, lon = 96, zoom = 6),
+    "Royaume-Uni" = list(lat = 54, lon = -2, zoom = 5),
+    "Bangladesh" = list(lat = 24, lon = 90, zoom = 6),
+    "Singapour" = list(lat = 1.3521, lon = 103.8198, zoom = 8)
   )
   
   # ---- Chargement des formes des pays ----
@@ -339,35 +364,23 @@ server <- function(input, output, session){
       )
   })
   
-  # Mise à jour du zoom et du menu déroulant quand un pays est cliqué
-observeEvent(input$map_shape_click, {
-  clicked_country <- input$map_shape_click$id  # Récupère le pays cliqué
+  # ---- Mise à jour du zoom sur sélection ----
+  observeEvent(input$region_select, {
+    region_fr <- input$region_select  # Récupère la région sélectionnée en français
+    
+    # Traduire la région en anglais à partir du mappage
+    region_en <- country_mapping_fr_to_en[region_fr]
+    
+    leafletProxy("map") %>%
+      setView(lng = region_coords[[region_fr]]$lon, lat = region_coords[[region_fr]]$lat, zoom = region_coords[[region_fr]]$zoom)
+  })
   
-  if (!is.null(clicked_country)) {
-    # Convertir le nom en anglais (clicked_country) en français
-    if (clicked_country %in% names(country_mapping_en_to_fr)) {
-      french_country_name <- country_mapping_en_to_fr[clicked_country]
-      updateSelectInput(session, "region_select", selected = french_country_name)
-    } else {
-      french_country_name <- clicked_country  # Si pas dans la liste, utiliser le nom anglais
-    }
-    
-    # Trouver les coordonnées du pays dans les données du monde
-    country_data <- world[world$name == clicked_country, ]
-    
-    if (nrow(country_data) > 0) {
-      lat <- country_data$latitude[1]
-      lon <- country_data$longitude[1]
-      
-      # Ajuster le zoom en fonction de la taille du pays
-      zoom_level <- ifelse(country_data$area_km2[1] > 2e6, 4, 6)  # Zoom plus large pour grands pays
-      
-      # Mettre à jour la carte pour zoomer sur le pays sélectionné
-      leafletProxy("map") %>%
-        setView(lng = lon, lat = lat, zoom = zoom_level)
-    }
-  }
-})
+  observeEvent(input$reset_map, {
+    leafletProxy("map") %>%
+      setView(lng = 0, lat = 20, zoom = 2) 
+  })
+  
+  
   
   # ---- Mise à jour du menu déroulant quand un pays est cliqué ----
   observeEvent(input$map_shape_click, {
