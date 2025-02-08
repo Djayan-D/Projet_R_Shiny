@@ -105,8 +105,8 @@ ui <- fluidPage(
                tabPanel("Recette", 
                         uiOutput("recette_details_carte")
                )
-             )
-    ),
+               )
+             ),
     
     
     
@@ -245,6 +245,7 @@ server <- function(input, output, session){
   #----- RECHERCHE PAR CARTE -----
   
   # ---- Définition des régions pour le zoom ----
+  
   region_coords <- list(
     "Inde" = list(lat = 22, lon = 78, zoom = 5),
     "Inde du Nord" = list(lat = 28, lon = 77, zoom = 6),
@@ -260,7 +261,7 @@ server <- function(input, output, session){
   # ---- Création de la carte Leaflet ----
   output$map <- renderLeaflet({
     leaflet(world) %>%
-      addTiles() %>%
+      addTiles(options = tileOptions(minZoom = 2, maxZoom = 5)) %>%  # Limiter le zoom entre 2 et 5
       addPolygons(
         fillColor = ~colorFactor("viridis", world$region_un)(region_un),
         fillOpacity = 0.6,
@@ -268,8 +269,27 @@ server <- function(input, output, session){
         highlight = highlightOptions(weight = 3, color = "#666", fillOpacity = 0.8),
         label = ~name,
         layerId = ~name
+      ) %>%
+      setView(lng = 0, lat = 20, zoom = 2) %>%  # Centrer la carte sur un planisphère global avec un zoom modéré
+      setMaxBounds(
+        lng1 = -180, lat1 = -85,  # Coin supérieur gauche
+        lng2 = 180, lat2 = 85     # Coin inférieur droit
       )
   })
+  
+  
+  # Pour la mise à jour du zoom en fonction de la région, utilisez la même configuration pour limiter le zoom.
+  observeEvent(input$region_select, {
+    region <- input$region_select
+    if (!is.null(region_coords[[region]])) {
+      leafletProxy("map") %>%
+        setView(lng = region_coords[[region]]$lon, lat = region_coords[[region]]$lat, zoom = region_coords[[region]]$zoom) %>%
+        addTiles(options = tileOptions(minZoom = 2, maxZoom = 5))  # Limiter le zoom entre 2 et 5
+    }
+  })
+  
+  
+  
   
   # ---- Mise à jour du zoom sur sélection ----
   observeEvent(input$region_select, {
@@ -327,20 +347,40 @@ server <- function(input, output, session){
   })
   
   # ---- Affichage des détails de la recette sélectionnée ----
+  
   output$recette_details_carte <- renderUI({
-    req(selected_recipe())
+    req(selected_recipe())  # Assurez-vous qu'une recette soit sélectionnée
     recipe <- selected_recipe()
     
+    ingredients_list <- strsplit(recipe$ingr_name, ",")[[1]]
+    quantities_list <- strsplit(recipe$ingr_qt, ",")[[1]]
+    
+    ingredients_html <- lapply(1:length(ingredients_list), function(i) {
+      paste0("<li>", ingredients_list[i], " - ", quantities_list[i], "</li>")
+    }) |> paste(collapse = "")
+    
     tagList(
-      h3(recipe$name),
-      p(strong("Régime : "), recipe$diet),
-      p(strong("Temps de préparation : "), recipe$prep_time, " min"),
-      p(strong("Temps de cuisson : "), recipe$cook_time, " min"),
-      img(src = recipe$image_url, width = "100%"),
-      h4("Instructions"),
-      p(recipe$instructions)
+      div(style = "border: 2px solid #ccc; padding: 15px; margin-bottom: 20px; background-color: #f9f9f9;",
+          fluidRow(
+            column(4, 
+                   p(strong("Régime : "), recipe$diet),
+                   p(strong("Temps de préparation : "), recipe$prep_time, " min"),
+                   p(strong("Temps de cuisson : "), recipe$cook_time, " min")
+            ),
+            column(8, 
+                   h3(recipe$name),
+                   img(src = recipe$image_url, width = "100%", 
+                       style = "max-height: 300px; object-fit: cover; display: block; margin: 0 auto;")  
+            )
+          ),
+          h4("Ingrédients"),
+          HTML(paste0("<ul>", ingredients_html, "</ul>")),
+          h4("Instructions"),
+          p(recipe$instructions)
+      )
     )
   })
+  
   
   
   
