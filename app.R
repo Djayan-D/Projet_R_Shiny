@@ -250,27 +250,27 @@ server <- function(input, output, session){
     "Inde" = list(lat = 22, lon = 78, zoom = 5),
     "Inde du Sud" = list(lat = 12, lon = 78, zoom = 6),
     "Europe" = list(lat = 50, lon = 10, zoom = 4),
-    "Continental" = list(lat = 45, lon = 7, zoom = 5),  # Position approximative pour l'Europe continentale
-    "Moyen-Orient" = list(lat = 25, lon = 45, zoom = 5),  # Localisation générale du Moyen-Orient
+    "Continental" = list(lat = 45, lon = 7, zoom = 5),
+    "Moyen-Orient" = list(lat = 25, lon = 45, zoom = 5),
     "Népal" = list(lat = 28, lon = 84, zoom = 7),
     "Inde du Nord-Est" = list(lat = 26, lon = 91, zoom = 7),
     "Thaïlande" = list(lat = 15, lon = 100, zoom = 6),
     "Italie" = list(lat = 42, lon = 12, zoom = 6),
     "Chine" = list(lat = 35, lon = 105, zoom = 5),
-    "Méditerranée" = list(lat = 35, lon = 18, zoom = 5),  # Position générale de la Méditerranée
-    "Asie" = list(lat = 30, lon = 100, zoom = 3),  # Position générale pour l'Asie
+    "Méditerranée" = list(lat = 35, lon = 18, zoom = 5),
+    "Asie" = list(lat = 30, lon = 100, zoom = 3),
     "Indonésie" = list(lat = -5, lon = 120, zoom = 6),
     "Vietnam" = list(lat = 14, lon = 108, zoom = 6),
     "États-Unis" = list(lat = 37, lon = -95, zoom = 4),
     "France" = list(lat = 46, lon = 2, zoom = 5),
     "Mexique" = list(lat = 23, lon = -102, zoom = 5),
     "Japon" = list(lat = 36, lon = 138, zoom = 6),
-    "Afrique" = list(lat = 0, lon = 20, zoom = 3),  # Position approximative pour l'Afrique
+    "Afrique" = list(lat = 0, lon = 20, zoom = 3),
     "Sri Lanka" = list(lat = 7, lon = 81, zoom = 7),
     "Suède" = list(lat = 60, lon = 18, zoom = 5),
     "Afghanistan" = list(lat = 33, lon = 65, zoom = 6),
     "Inde du Centre" = list(lat = 22, lon = 80, zoom = 6),
-    "Caraïbes" = list(lat = 15, lon = -60, zoom = 5),  # Position générale des Caraïbes
+    "Caraïbes" = list(lat = 15, lon = -60, zoom = 5),
     "Corée" = list(lat = 37, lon = 127, zoom = 6),
     "Malaisie" = list(lat = 3, lon = 101, zoom = 6),
     "Birmanie" = list(lat = 21, lon = 96, zoom = 6),
@@ -284,39 +284,17 @@ server <- function(input, output, session){
   
   # Créer un mappage manuel des noms français vers anglais
   country_mapping_fr_to_en <- c(
-    "Inde du Nord" = "India",
-    "Inde" = "India",
-    "Inde du Sud" = "India",
-    "Europe" = "Europe",
-    "Continental" = "Continental Europe",
-    "Moyen-Orient" = "Middle East",
-    "Népal" = "Nepal",
-    "Inde du Nord-Est" = "India",
-    "Thaïlande" = "Thailand",
-    "Italie" = "Italy",
-    "Chine" = "China",
-    "Méditerranée" = "Mediterranean",
-    "Asie" = "Asia",
-    "Indonésie" = "Indonesia",
-    "Vietnam" = "Vietnam",
-    "États-Unis" = "United States of America",
-    "Grèce" = "Greece",
-    "Pakistan" = "Pakistan",
-    "France" = "France",
-    "Mexique" = "Mexico",
-    "Japon" = "Japan",
-    "Afrique" = "Africa",
-    "Sri Lanka" = "Sri Lanka",
-    "Suède" = "Sweden",
-    "Afghanistan" = "Afghanistan",
-    "Inde du Centre" = "India",
-    "Caraïbes" = "Caribbean",
-    "Corée" = "Korea",
-    "Malaisie" = "Malaysia",
-    "Birmanie" = "Myanmar",
-    "Royaume-Uni" = "United Kingdom",
-    "Bangladesh" = "Bangladesh",
-    "Singapour" = "Singapore"
+    "Inde du Nord" = "India", "Inde" = "India", "Inde du Sud" = "India",
+    "Europe" = "Europe", "Continental" = "Continental Europe", "Moyen-Orient" = "Middle East",
+    "Népal" = "Nepal", "Inde du Nord-Est" = "India", "Thaïlande" = "Thailand", 
+    "Italie" = "Italy", "Chine" = "China", "Méditerranée" = "Mediterranean", 
+    "Asie" = "Asia", "Indonésie" = "Indonesia", "Vietnam" = "Vietnam", 
+    "États-Unis" = "United States of America", "Grèce" = "Greece", "Pakistan" = "Pakistan", 
+    "France" = "France", "Mexique" = "Mexico", "Japon" = "Japan", "Afrique" = "Africa", 
+    "Sri Lanka" = "Sri Lanka", "Suède" = "Sweden", "Afghanistan" = "Afghanistan", 
+    "Inde du Centre" = "India", "Caraïbes" = "Caribbean", "Corée" = "Korea", 
+    "Malaisie" = "Malaysia", "Birmanie" = "Myanmar", "Royaume-Uni" = "United Kingdom", 
+    "Bangladesh" = "Bangladesh", "Singapour" = "Singapore"
   )
   
   # Appliquer le mappage aux noms des pays dans recette$cuisine
@@ -344,7 +322,7 @@ server <- function(input, output, session){
   # Remplace les valeurs NA par les noms anglais si pas de correspondance en français
   world_with_recipes$name_fr[is.na(world_with_recipes$name_fr)] <- world_with_recipes$name[is.na(world_with_recipes$name_fr)]
   
-  # Mettre à jour l'affichage des noms sur la carte
+  # Mise à jour de l'affichage de la carte
   output$map <- renderLeaflet({
     leaflet(world) %>%
       addTiles(options = tileOptions(minZoom = 2, maxZoom = 5)) %>%
@@ -358,19 +336,12 @@ server <- function(input, output, session){
         layerId = ~name
       ) %>%
       setView(lng = 0, lat = 20, zoom = 2) %>%
-      setMaxBounds(
-        lng1 = -180, lat1 = -85,  
-        lng2 = 180, lat2 = 85
-      )
+      setMaxBounds(lng1 = -180, lat1 = -85, lng2 = 180, lat2 = 85)
   })
   
   # ---- Mise à jour du zoom sur sélection ----
   observeEvent(input$region_select, {
     region_fr <- input$region_select  # Récupère la région sélectionnée en français
-    
-    # Traduire la région en anglais à partir du mappage
-    region_en <- country_mapping_fr_to_en[region_fr]
-    
     leafletProxy("map") %>%
       setView(lng = region_coords[[region_fr]]$lon, lat = region_coords[[region_fr]]$lat, zoom = region_coords[[region_fr]]$zoom)
   })
@@ -380,13 +351,9 @@ server <- function(input, output, session){
       setView(lng = 0, lat = 20, zoom = 2) 
   })
   
-  
-  
   # ---- Mise à jour du menu déroulant quand un pays est cliqué ----
   observeEvent(input$map_shape_click, {
     clicked_country <- input$map_shape_click$id  # Récupère le pays cliqué
-    
-    # Convertir le nom en anglais (clicked_country) en français en utilisant le mappage inverse
     if (!is.null(clicked_country) && clicked_country %in% names(country_mapping_en_to_fr)) {
       french_country_name <- country_mapping_en_to_fr[clicked_country]
       updateSelectInput(session, "region_select", selected = french_country_name)
@@ -396,7 +363,6 @@ server <- function(input, output, session){
   # ---- Filtrage des recettes selon la région ou le pays sélectionné ----
   recettes_par_carte <- reactive({
     selected_region <- input$region_select
-    
     if (selected_region == "Neutre") {
       return(data.frame())  # Retourne un tableau vide si "Neutre" est sélectionné
     } else {
@@ -458,7 +424,6 @@ server <- function(input, output, session){
       )
     )
   })
-  
   
   
   
