@@ -334,28 +334,18 @@ server <- function(input, output, session){
   })
   
   # ---- Mise à jour du zoom sur sélection ----
-  # Mise à jour de la vue lors du clic sur un pays
-observeEvent(input$map_shape_click, {
-  clicked_country <- input$map_shape_click$id  # Récupère l'ID du pays cliqué
+  observeEvent(input$region_select, {
+    region <- input$region_select
+    if (!is.null(region_coords[[region]])) {
+      leafletProxy("map") %>%
+        setView(lng = region_coords[[region]]$lon, lat = region_coords[[region]]$lat, zoom = region_coords[[region]]$zoom)
+    }
+  })
   
-  # Vérifiez si l'ID du pays cliqué existe dans le mappage de coordonnées
-  country_coords <- world_with_recipes %>%
-    filter(name == clicked_country) %>%
-    select(geometry) %>%
-    st_centroid() %>%
-    st_coordinates()  # Récupère les coordonnées géométriques du pays
-  
-  # Si des coordonnées sont trouvées, effectuez le zoom sur le pays
-  if (nrow(country_coords) > 0) {
-    lng <- country_coords[1, "X"]
-    lat <- country_coords[1, "Y"]
-    
-    # Zoom sur le pays avec un niveau de zoom plus élevé (ex. 6 ou 7)
+  observeEvent(input$reset_map, {
     leafletProxy("map") %>%
-      setView(lng = lng, lat = lat, zoom = 6)
-  }
-})
-
+      setView(lng = 0, lat = 20, zoom = 2) 
+  })
   
   # ---- Mise à jour du menu déroulant quand un pays est cliqué ----
   observeEvent(input$map_shape_click, {
