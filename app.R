@@ -274,7 +274,7 @@ server <- function(input, output, session){
     "Asie" = "Asia",
     "Indonésie" = "Indonesia",
     "Vietnam" = "Vietnam",
-    "États-Unis" = "United States",
+    "États-Unis" = "United States of America",
     "Grèce" = "Greece",
     "Pakistan" = "Pakistan",
     "France" = "France",
@@ -423,10 +423,6 @@ server <- function(input, output, session){
       )
     )
   })
-  
-  
-  
-  
   
   
   
