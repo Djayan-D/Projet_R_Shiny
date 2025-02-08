@@ -313,7 +313,13 @@ server <- function(input, output, session){
   country_mapping_en_to_fr <- names(country_mapping_fr_to_en)
   names(country_mapping_en_to_fr) <- country_mapping_fr_to_en
   
-  # Créer la carte Leaflet
+  # Ajouter une colonne avec les noms en français
+  world_with_recipes$name_fr <- country_mapping_en_to_fr[world_with_recipes$name]
+  
+  # Remplace les valeurs NA par les noms anglais si pas de correspondance en français
+  world_with_recipes$name_fr[is.na(world_with_recipes$name_fr)] <- world_with_recipes$name[is.na(world_with_recipes$name_fr)]
+  
+  # Mettre à jour l'affichage des noms sur la carte
   output$map <- renderLeaflet({
     leaflet(world) %>%
       addTiles(options = tileOptions(minZoom = 2, maxZoom = 5)) %>%
@@ -323,29 +329,45 @@ server <- function(input, output, session){
         fillOpacity = 0.6,
         weight = 1,
         highlight = highlightOptions(weight = 3, color = "#666", fillOpacity = 0.8),
-        label = ~name,
+        label = ~name_fr,  # Afficher les noms en français
         layerId = ~name
       ) %>%
       setView(lng = 0, lat = 20, zoom = 2) %>%
       setMaxBounds(
-        lng1 = -180, lat1 = -85,  # Coin supérieur gauche
-        lng2 = 180, lat2 = 85     # Coin inférieur droit
+        lng1 = -180, lat1 = -85,  
+        lng2 = 180, lat2 = 85
       )
   })
   
-  # ---- Mise à jour du zoom sur sélection ----
-  observeEvent(input$region_select, {
-    region <- input$region_select
-    if (!is.null(region_coords[[region]])) {
-      leafletProxy("map") %>%
-        setView(lng = region_coords[[region]]$lon, lat = region_coords[[region]]$lat, zoom = region_coords[[region]]$zoom)
-    }
-  })
+  # Mise à jour du zoom et du menu déroulant quand un pays est cliqué
+observeEvent(input$map_shape_click, {
+  clicked_country <- input$map_shape_click$id  # Récupère le pays cliqué
   
-  observeEvent(input$reset_map, {
-    leafletProxy("map") %>%
-      setView(lng = 0, lat = 20, zoom = 2) 
-  })
+  if (!is.null(clicked_country)) {
+    # Convertir le nom en anglais (clicked_country) en français
+    if (clicked_country %in% names(country_mapping_en_to_fr)) {
+      french_country_name <- country_mapping_en_to_fr[clicked_country]
+      updateSelectInput(session, "region_select", selected = french_country_name)
+    } else {
+      french_country_name <- clicked_country  # Si pas dans la liste, utiliser le nom anglais
+    }
+    
+    # Trouver les coordonnées du pays dans les données du monde
+    country_data <- world[world$name == clicked_country, ]
+    
+    if (nrow(country_data) > 0) {
+      lat <- country_data$latitude[1]
+      lon <- country_data$longitude[1]
+      
+      # Ajuster le zoom en fonction de la taille du pays
+      zoom_level <- ifelse(country_data$area_km2[1] > 2e6, 4, 6)  # Zoom plus large pour grands pays
+      
+      # Mettre à jour la carte pour zoomer sur le pays sélectionné
+      leafletProxy("map") %>%
+        setView(lng = lon, lat = lat, zoom = zoom_level)
+    }
+  }
+})
   
   # ---- Mise à jour du menu déroulant quand un pays est cliqué ----
   observeEvent(input$map_shape_click, {
