@@ -33,7 +33,7 @@ colnames(recette)[c(6:9)] <- c("ingr_name", "ingr_qt", "prep_time", "cook_time")
 
 str(recette)
 
-regimes_disponibles <- c("None", unique(na.omit(recette$diet)))
+regimes_disponibles <- c("Aucun", unique(na.omit(recette$diet)))
 
 recette$total_time <- recette$prep_time + recette$cook_time
 
@@ -45,8 +45,6 @@ temps_labels <- c("0 min" = 0, "15 min" = 15, "30 min" = 30, "45 min" = 45,
 
 
 #---------- 3. UI ----------
-
-# inverser régime et allergènes + régime marche pas
 
 ui <- fluidPage(
   theme = bslib::bs_theme(bootswatch = "minty"),tabsetPanel(
@@ -109,8 +107,29 @@ ui <- fluidPage(
                )
              ),
     
-    
-    
+    # ----- FOND DE PLACARD -----
+    tabPanel("Fond de placard",
+             sidebarLayout(
+               sidebarPanel(
+                 h4("Sélection d'ingrédients (max 10)"),
+                 textInput("ing1", "Ingrédient 1 :"),
+                 textInput("ing2", "Ingrédient 2 :"),
+                 textInput("ing3", "Ingrédient 3 :"),
+                 textInput("ing4", "Ingrédient 4 :"),
+                 textInput("ing5", "Ingrédient 5 :"),
+                 textInput("ing6", "Ingrédient 6 :"),
+                 textInput("ing7", "Ingrédient 7 :"),
+                 textInput("ing8", "Ingrédient 8 :"),
+                 textInput("ing9", "Ingrédient 9 :"),
+                 textInput("ing10", "Ingrédient 10 :"),
+                 actionButton("search_by_ingredients", "Rechercher")
+               ),
+               mainPanel(
+                 DTOutput("recette_table_ingredients"),
+                 uiOutput("recette_details_search")
+               )
+             )
+    ),
     
     
     # ----- BARRE DE RECHERCHE -----
@@ -123,9 +142,11 @@ ui <- fluidPage(
                  actionButton("search_by_name", "Rechercher")
                ),
                mainPanel(
+                 DTOutput("recette_table_search"),
                  uiOutput("recette_details_search")
                )
-             )),
+             )
+    ),
     
     
     # ----- INFORMATION -----
@@ -146,7 +167,7 @@ server <- function(input, output, session){
   
   #----- RECHERCHE CARACTERISTIQUES -----
   
-  recettes_filtrees <- reactiveVal(data.frame())  # Stocke les recettes filtrées
+  recettes_filtrees <- reactiveVal(data.frame())  
   selected_recipe <- reactiveVal(NULL)
   
   output$formatted_time <- renderText({
@@ -433,66 +454,78 @@ server <- function(input, output, session){
   
   
   
+  #----- FOND DE PLACARD -----
+  observeEvent(input$search_by_ingredients, {
+    ingredients <- c(input$ing1, input$ing2, input$ing3, input$ing4, input$ing5,
+                     input$ing6, input$ing7, input$ing8, input$ing9, input$ing10)
+    ingredients <- tolower(trimws(ingredients))
+    ingredients <- ingredients[ingredients != ""]
+    
+    req(length(ingredients) > 0)
+    
+    recettes_found <- recette |>
+      mutate(
+        ingr_lower = tolower(ingr_name),
+        score = sapply(ingr_lower, function(x) {
+          sum(sapply(ingredients, function(ing) as.numeric(grepl(ing, x, ignore.case = TRUE))))
+        })
+      ) |>
+      filter(score > 0) |>
+      arrange(desc(score))
+    
+    output$recette_table_ingredients <- renderDT({
+      datatable(recettes_found[, c("name", "description", "prep_time", "score")],
+                options = list(pageLength = 5))
+    })
+  })
   
-  
+  observeEvent(input$recette_table_ingredients_rows_selected, {
+    selected_row <- input$recette_table_ingredients_rows_selected
+    if (length(selected_row) > 0) {
+      # De même, ici on suppose que la table résultant de la recherche par ingrédients est stockée dans
+      # une expression réactive, par exemple, "recettes_found_ingredients".
+      selected_recipe(recette_table_ingredients()[selected_row, ])
+    }
+  })
   
   
   #----- BARRE DE RECHERCHE -----
   
+  
+  
   observeEvent(input$search_by_name, {
-    recipe_name_search <- input$recette_search
+    req(input$recette_search)
     
-    if (recipe_name_search != "") {
-      recette_found <- recette |>
-        filter(str_to_lower(name) == str_to_lower(recipe_name_search))
-      
-      if (nrow(recette_found) > 0) {
-        selected_recipe(recette_found)
-      } else {
-        selected_recipe(NULL)
-        showModal(modalDialog(
-          title = "Recette non trouvée",
-          "Aucune recette ne correspond à ce nom. Veuillez vérifier l'orthographe.",
-          easyClose = TRUE,
-          footer = NULL
-        ))
-      }
+    query <- tolower(trimws(input$recette_search))
+    mots_recherche <- unlist(strsplit(query, "\\s+"))
+    
+    recettes_found <- recette |>
+      mutate(
+        name_lower = tolower(name),
+        score = sapply(name_lower, function(x) {
+          sum(sapply(mots_recherche, function(mot) as.numeric(grepl(mot, x, ignore.case = TRUE)))
+          )
+        })
+      ) |>
+      filter(score > 0) |>
+      arrange(desc(score))
+    
+    output$recette_table_search <- renderDT({
+      datatable(recettes_found[, c("name", "description", "prep_time", "score")],
+                options = list(pageLength = 5))
+    })
+  })
+  
+  observeEvent(input$recette_table_search_rows_selected, {
+    selected_row <- input$recette_table_search_rows_selected
+    if (length(selected_row) > 0) {
+      # Ici, on suppose que la table résultant de la recherche par nom est stockée dans une expression réactive,
+      # par exemple, "recettes_found_name" (ou tout autre nom déjà défini dans votre code).
+      # Si ce n'est pas le cas, assurez-vous de référencer la table affichée dans le datatable.
+      selected_recipe(recette_table_search()[selected_row, ])
     }
   })
   
-  output$recette_details_search <- renderUI({
-    req(selected_recipe())
-    
-    recipe <- selected_recipe()
-    
-    ingredients_list <- strsplit(recipe$ingr_name, ",")[[1]]
-    quantities_list <- strsplit(recipe$ingr_qt, ",")[[1]]
-    
-    ingredients_html <- lapply(1:length(ingredients_list), function(i) {
-      paste0("<li>", ingredients_list[i], " - ", quantities_list[i], "</li>")
-    }) |> paste(collapse = "")
-    
-    tagList(
-      div(style = "border: 2px solid #ccc; padding: 15px; margin-bottom: 20px; background-color: #f9f9f9;",
-          fluidRow(
-            column(4, 
-                   p(strong("Régime : "), recipe$diet),
-                   p(strong("Temps de préparation : "), recipe$prep_time, " min"),
-                   p(strong("Temps de cuisson : "), recipe$cook_time, " min")
-            ),
-            column(8, 
-                   h3(recipe$name),
-                   img(src = recipe$image_url, width = "100%", 
-                       style = "max-height: 300px; object-fit: cover; display: block; margin: 0 auto;")  
-            )
-          ),
-          h4("Ingrédients"),
-          HTML(paste0("<ul>", ingredients_html, "</ul>")),
-          h4("Instructions"),
-          p(recipe$instructions)
-      )
-    )
-  })
   
   #----- INFORMATION -----
   
