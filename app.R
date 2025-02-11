@@ -53,6 +53,7 @@ ui <- fluidPage(
     base_font = "Merriweather",
     font_scale = 1 ),
   
+  
   tabsetPanel(
     id = "onglet",
     
@@ -216,7 +217,7 @@ server <- function(input, output, session){
         filter(!sapply(tolower(ingr_name), function(ing) any(sapply(allergenes, grepl, ing, ignore.case = TRUE))))
     }
     
-    if (diet_selected != "None") {
+    if (diet_selected != "Aucun") {
       recettes_filtrees_data <- recettes_filtrees_data |> filter(diet == diet_selected)
     }
     
@@ -257,7 +258,9 @@ server <- function(input, output, session){
     }) |> paste(collapse = "")
     
     tagList(
-      div(style = "border: 2px solid #ccc; padding: 15px; margin-bottom: 20px; background-color: #f9f9f9;",
+      div(style = "border: 2px solid #ccc; padding: 15px; margin-bottom: 20px; background-color: #f9f9f9; position: relative;",
+          actionButton("close_recipe", "✖", 
+                       style = "position: absolute; top: 5px; right: 10px; background: none; border: none; font-size: 18px; color: red; cursor: pointer;"),
           fluidRow(
             column(4, 
                    p(strong("Régime : "), recipe$diet),
@@ -276,6 +279,10 @@ server <- function(input, output, session){
           p(recipe$instructions)
       )
     )
+  })
+  
+  observeEvent(input$close_recipe, {
+    selected_recipe(NULL) 
   })
   
   
@@ -444,7 +451,9 @@ server <- function(input, output, session){
     }) |> paste(collapse = "")
     
     tagList(
-      div(style = "border: 2px solid #ccc; padding: 15px; margin-bottom: 20px; background-color: #f9f9f9;",
+      div(style = "border: 2px solid #ccc; padding: 15px; margin-bottom: 20px; background-color: #f9f9f9; position: relative;",
+          actionButton("close_recipe_carte", "✖", 
+                       style = "position: absolute; top: 5px; right: 10px; background: none; border: none; font-size: 18px; color: red; cursor: pointer;"),
           fluidRow(
             column(4, 
                    p(strong("Régime : "), recipe$diet),
@@ -465,6 +474,10 @@ server <- function(input, output, session){
     )
   })
   
+  observeEvent(input$close_recipe_carte, {
+    selected_recipe(NULL)
+    updateTabsetPanel(session, "carte_tabs", selected = "Carte") 
+  })
   
   
   
@@ -507,38 +520,45 @@ server <- function(input, output, session){
   })
   
   output$recette_details_placard <- renderUI({
-    req(selected_recipe())  
-    
-    recipe <- selected_recipe()
-    
-    ingredients_list <- strsplit(recipe$ingr_name, ",")[[1]]
-    quantities_list <- strsplit(recipe$ingr_qt, ",")[[1]]
-    
-    ingredients_html <- lapply(1:length(ingredients_list), function(i) {
-      paste0("<li>", ingredients_list[i], " - ", quantities_list[i], "</li>")
-    }) |> paste(collapse = "")
-    
-    tagList(
-      div(style = "border: 2px solid #ccc; padding: 15px; margin-bottom: 20px; background-color: #f9f9f9;",
-          fluidRow(
-            column(4, 
-                   p(strong("Régime : "), recipe$diet),
-                   p(strong("Temps de préparation : "), recipe$prep_time, " min"),
-                   p(strong("Temps de cuisson : "), recipe$cook_time, " min")
-            ),
-            column(8, 
-                   h3(recipe$name),
-                   img(src = recipe$image_url, width = "100%", 
-                       style = "max-height: 300px; object-fit: cover; display: block; margin: 0 auto;")  
-            )
+  req(selected_recipe())  
+  
+  recipe <- selected_recipe()
+  
+  ingredients_list <- strsplit(recipe$ingr_name, ",")[[1]]
+  quantities_list <- strsplit(recipe$ingr_qt, ",")[[1]]
+  
+  ingredients_html <- lapply(1:length(ingredients_list), function(i) {
+    paste0("<li>", ingredients_list[i], " - ", quantities_list[i], "</li>")
+  }) |> paste(collapse = "")
+  
+  tagList(
+    div(style = "border: 2px solid #ccc; padding: 15px; margin-bottom: 20px; background-color: #f9f9f9; position: relative;",
+        actionButton("close_recipe_placard", "✖", 
+                     style = "position: absolute; top: 5px; right: 10px; background: none; border: none; font-size: 18px; color: red; cursor: pointer;"),
+        fluidRow(
+          column(4, 
+                 p(strong("Régime : "), recipe$diet),
+                 p(strong("Temps de préparation : "), recipe$prep_time, " min"),
+                 p(strong("Temps de cuisson : "), recipe$cook_time, " min")
           ),
-          h4("Ingrédients"),
-          HTML(paste0("<ul>", ingredients_html, "</ul>")),
-          h4("Instructions"),
-          p(recipe$instructions)
-      )
+          column(8, 
+                 h3(recipe$name),
+                 img(src = recipe$image_url, width = "100%", 
+                     style = "max-height: 300px; object-fit: cover; display: block; margin: 0 auto;")  
+          )
+        ),
+        h4("Ingrédients"),
+        HTML(paste0("<ul>", ingredients_html, "</ul>")),
+        h4("Instructions"),
+        p(recipe$instructions)
     )
-  })
+  )
+})
+
+observeEvent(input$close_recipe_placard, {
+  selected_recipe(NULL)
+})
+
   
   #----- BARRE DE RECHERCHE -----
   recettes_found_name <- reactiveVal(data.frame())
@@ -587,7 +607,9 @@ server <- function(input, output, session){
     }) |> paste(collapse = "")
     
     tagList(
-      div(style = "border: 2px solid #ccc; padding: 15px; margin-bottom: 20px; background-color: #f9f9f9;",
+      div(style = "border: 2px solid #ccc; padding: 15px; margin-bottom: 20px; background-color: #f9f9f9; position: relative;",
+          actionButton("close_recipe_barre", "✖", 
+                       style = "position: absolute; top: 5px; right: 10px; background: none; border: none; font-size: 18px; color: red; cursor: pointer;"),
           fluidRow(
             column(4, 
                    p(strong("Régime : "), recipe$diet),
@@ -606,6 +628,10 @@ server <- function(input, output, session){
           p(recipe$instructions)
       )
     )
+  })
+  
+  observeEvent(input$close_recipe_barre, {
+    selected_recipe(NULL)
   })
   
   #----- INFORMATION -----
