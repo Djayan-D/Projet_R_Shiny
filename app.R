@@ -110,22 +110,16 @@ ui <- fluidPage(
              tabsetPanel(
                id = "carte_tabs",
                tabPanel("Carte",
-                        fluidPage(
-                          sidebarLayout(
-                            sidebarPanel(
-                              h4("Choix de la région"),
-                              selectInput("region_select", "Sélectionnez une région :", 
-                                          choices = c("Aucun", unique(na.omit(recette$cuisine))),
-                                          selected = "Aucun"),
-                              actionButton("reset_map", "Réinitialiser la carte")
-                            ),
-                            mainPanel(
-                              leafletOutput("map", height = "400px")  # Hauteur de la carte
-                            )
+                        sidebarLayout(
+                          sidebarPanel(
+                            h4("Choix de la région"),
+                            selectInput("region_select", "Sélectionnez une région :", 
+                                        choices = c("Neutre", unique(na.omit(recette$cuisine))),
+                                        selected = "Neutre"),
+                            actionButton("reset_map", "Réinitialiser la carte")
                           ),
-                          # Tableau sous la carte mais sans chevauchement
-                          tags$div(
-                            style = "margin-top: 20px; margin-left: 0px; width: calc(100%);",
+                          mainPanel(
+                            leafletOutput("map", height = "400px"),  # Hauteur de la carte
                             DTOutput("table_carte", width = "100%")  # Largeur du tableau à 100%
                           )
                         )
@@ -135,6 +129,7 @@ ui <- fluidPage(
                )
              )
     ),
+    
     
     
     
@@ -468,7 +463,13 @@ server <- function(input, output, session){
     quantities_list <- strsplit(recipe$ingr_qt, ",")[[1]]
     
     ingredients_html <- lapply(1:length(ingredients_list), function(i) {
-      paste0("<li>", ingredients_list[i], " - ", quantities_list[i], "</li>")
+      if (is.na(quantities_list[i])){
+        
+        paste0("<li>", ingredients_list[i], "</li>")
+        
+      } else {
+        paste0("<li>", ingredients_list[i], " - ", quantities_list[i], "</li>")
+      }
     }) |> paste(collapse = "")
     
     tagList(
@@ -549,7 +550,13 @@ server <- function(input, output, session){
   quantities_list <- strsplit(recipe$ingr_qt, ",")[[1]]
   
   ingredients_html <- lapply(1:length(ingredients_list), function(i) {
-    paste0("<li>", ingredients_list[i], " - ", quantities_list[i], "</li>")
+    if (is.na(quantities_list[i])){
+      
+      paste0("<li>", ingredients_list[i], "</li>")
+      
+    } else {
+      paste0("<li>", ingredients_list[i], " - ", quantities_list[i], "</li>")
+    }
   }) |> paste(collapse = "")
   
   tagList(
@@ -624,7 +631,13 @@ observeEvent(input$close_recipe_placard, {
     quantities_list <- strsplit(recipe$ingr_qt, ",")[[1]]
     
     ingredients_html <- lapply(1:length(ingredients_list), function(i) {
-      paste0("<li>", ingredients_list[i], " - ", quantities_list[i], "</li>")
+      if (is.na(quantities_list[i])){
+        
+        paste0("<li>", ingredients_list[i], "</li>")
+        
+      } else {
+        paste0("<li>", ingredients_list[i], " - ", quantities_list[i], "</li>")
+      }
     }) |> paste(collapse = "")
     
     tagList(
