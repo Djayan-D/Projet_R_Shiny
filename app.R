@@ -20,6 +20,7 @@ library(stringr)
 library(DT)
 library(dplyr)
 library(shinyWidgets)
+library(bslib)
 
 
 
@@ -47,12 +48,33 @@ temps_labels <- c("0 min" = 0, "15 min" = 15, "30 min" = 30, "45 min" = 45,
 #---------- 3. UI ----------
 
 ui <- fluidPage(
-  theme = bslib::bs_theme(bootswatch = "minty"),tabsetPanel(
+  theme = bslib::bs_theme(
+    bootswatch = "united",
+    base_font = "Merriweather",
+    font_scale = 1 ),
+  
+  tabsetPanel(
     id = "onglet",
     
     
-    # ----- RECHERCHE PAR CARACTERISTIQUES -----
+    # ----- PRESENTATION -----
+    tabPanel("Nom du site", HTML(
+    "<div style='text-align: center;'>
+             Bienvenu sur ... !<br><br>
+             Notre site contient actuellement plus de 7000 recettes provenant de plus de ... de pays différents.<br><br>
+             En espérant que vous trouverez de quoi vous régaler !<br><br><br><br>mettre logo<br><br><br><br><br>
+             <span style='font-size:12px;'>
+             Depuis février 2025.<br>
+             Cette application a été créée dans le cadre du cours Dataviz : RShiny du Master 1 ECAP.<br>
+             En cas de questions, n'hésitez pas à contacter Isaline HERVE ou Djayan DAERON :<br>
+             isalineherve@gmail.com<br>
+             daeron.djayan@gmail.com
+             </span>
+             </div>
+             ")),
     
+    
+    # ----- RECHERCHE PAR CARACTERISTIQUES -----
     tabPanel("Recherche selon caractéristiques",
              sidebarLayout(
                sidebarPanel(
@@ -145,13 +167,6 @@ ui <- fluidPage(
                  DTOutput("recette_table_search")
                )
              )),
-    
-    
-    # ----- INFORMATION -----
-    
-    tabPanel("Information",
-             "Cette application a été créée dans le cadre du cours Dataviz : RShiny du Master 1 ECAP.\n Pour plus d'information, contactez "
-    )
   )
 )
 
@@ -162,6 +177,9 @@ ui <- fluidPage(
 #---------- 4. SERVEUR ----------
 
 server <- function(input, output, session){
+  
+  #----- PRESENTATION -----
+  
   
   #----- RECHERCHE CARACTERISTIQUES -----
   
