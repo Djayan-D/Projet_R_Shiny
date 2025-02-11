@@ -8,7 +8,10 @@ library(sf)
 library(rnaturalearth)
 library(rnaturalearthdata)
 library(shinyjs)
-library()
+library(rmarkdown)
+library(knitr)
+library(htmltools)
+library(webshot)
 
 
 
@@ -456,17 +459,15 @@ server <- function(input, output, session){
   
   # ---- Affichage des détails de la recette sélectionnée ----
   output$recette_details_carte <- renderUI({
-    req(selected_recipe())  # Assurez-vous qu'une recette soit sélectionnée
+    req(selected_recipe())
     recipe <- selected_recipe()
     
     ingredients_list <- strsplit(recipe$ingr_name, ",")[[1]]
     quantities_list <- strsplit(recipe$ingr_qt, ",")[[1]]
     
-    ingredients_html <- lapply(1:length(ingredients_list), function(i) {
-      if (is.na(quantities_list[i])){
-        
+    ingredients_html <- lapply(seq_along(ingredients_list), function(i) {
+      if (is.na(quantities_list[i]) || quantities_list[i] == "") {
         paste0("<li>", ingredients_list[i], "</li>")
-        
       } else {
         paste0("<li>", ingredients_list[i], " - ", quantities_list[i], "</li>")
       }
@@ -476,6 +477,11 @@ server <- function(input, output, session){
       div(style = "border: 2px solid #ccc; padding: 15px; margin-bottom: 20px; background-color: #f9f9f9; position: relative;",
           actionButton("close_recipe_carte", "✖", 
                        style = "position: absolute; top: 5px; right: 10px; background: none; border: none; font-size: 18px; color: red; cursor: pointer;"),
+          
+          # Bouton de téléchargement
+          downloadButton("download_recipe", "", 
+                         style = "position: absolute; top: 5px; right: 100px; background: none; border: 1px solid #007bff; font-size: 14px; color: #007bff; cursor: pointer;"),
+          
           fluidRow(
             column(4, 
                    p(strong("Régime : "), recipe$diet),
@@ -496,10 +502,50 @@ server <- function(input, output, session){
     )
   })
   
+  # ---- Générer le fichier de la recette pour le téléchargement ----
+  output$download_recipe <- downloadHandler(
+    filename = function() {
+      paste0(selected_recipe()$name, "_recette.txt")
+    },
+    content = function(file) {
+      recipe <- selected_recipe()
+      
+      # Créer le contenu de la recette
+      content <- paste0(
+        "Nom de la recette : ", recipe$name, "\n\n",
+        "Régime : ", recipe$diet, "\n",
+        "Temps de préparation : ", recipe$prep_time, " min\n",
+        "Temps de cuisson : ", recipe$cook_time, " min\n\n",
+        "Ingrédients :\n"
+      )
+      
+      # Ajouter les ingrédients
+      ingredients_list <- strsplit(recipe$ingr_name, ",")[[1]]
+      quantities_list <- strsplit(recipe$ingr_qt, ",")[[1]]
+      
+      for (i in seq_along(ingredients_list)) {
+        if (is.na(quantities_list[i]) || quantities_list[i] == "") {
+          content <- paste0(content, "- ", ingredients_list[i], "\n")
+        } else {
+          content <- paste0(content, "- ", ingredients_list[i], " - ", quantities_list[i], "\n")
+        }
+      }
+      
+      content <- paste0(content, "\nInstructions :\n", recipe$instructions)
+      
+      # Écrire dans le fichier
+      writeLines(content, con = file)
+    }
+  )
+  
+  # ---- Fermeture de la carte de recette ----
   observeEvent(input$close_recipe_carte, {
     selected_recipe(NULL)
-    updateTabsetPanel(session, "carte_tabs", selected = "Carte") 
+    updateTabsetPanel(session, "carte_tabs", selected = "Carte")
   })
+  
+  
+  
   
   
   
