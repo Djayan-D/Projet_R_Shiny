@@ -110,25 +110,36 @@ ui <- fluidPage(
              tabsetPanel(
                id = "carte_tabs",
                tabPanel("Carte",
-                        sidebarLayout(
-                          sidebarPanel(
-                            h4("Choix de la région"),
-                            selectInput("region_select", "Sélectionnez une région :", 
-                                        choices = c("Neutre", unique(na.omit(recette$cuisine))),
-                                        selected = "Neutre"),
-                            actionButton("reset_map", "Réinitialiser la carte")
+                        fluidPage(
+                          sidebarLayout(
+                            sidebarPanel(
+                              h4("Choix de la région"),
+                              selectInput("region_select", "Sélectionnez une région :", 
+                                          choices = c("Aucun", unique(na.omit(recette$cuisine))),
+                                          selected = "Aucun"),
+                              actionButton("reset_map", "Réinitialiser la carte")
+                            ),
+                            mainPanel(
+                              leafletOutput("map", height = "400px")  # Hauteur de la carte
+                            )
                           ),
-                          mainPanel(
-                            leafletOutput("map", height = "500px"),
-                            DTOutput("table_carte")
+                          # Tableau sous la carte mais sans chevauchement
+                          tags$div(
+                            style = "margin-top: 20px; margin-left: 0px; width: calc(100%);",
+                            DTOutput("table_carte", width = "100%")  # Largeur du tableau à 100%
                           )
                         )
                ),
                tabPanel("Recette", 
                         uiOutput("recette_details_carte")
                )
-               )
-             ),
+             )
+    ),
+    
+    
+    
+    
+    
     
     # ----- FOND DE PLACARD -----
     tabPanel("Fond de placard",
@@ -254,7 +265,13 @@ server <- function(input, output, session){
     quantities_list <- strsplit(recipe$ingr_qt, ",")[[1]]
     
     ingredients_html <- lapply(1:length(ingredients_list), function(i) {
+      if (is.na(quantities_list[i])){
+        
+        paste0("<li>", ingredients_list[i], "</li>")
+        
+      } else {
       paste0("<li>", ingredients_list[i], " - ", quantities_list[i], "</li>")
+      }
     }) |> paste(collapse = "")
     
     tagList(
@@ -396,7 +413,11 @@ server <- function(input, output, session){
   observeEvent(input$reset_map, {
     leafletProxy("map") %>%
       setView(lng = 0, lat = 20, zoom = 2) 
+    
+    # Réinitialiser la sélection dans le menu déroulant à "Aucun"
+    updateSelectInput(session, "region_select", selected = "Aucun")
   })
+  
   
   # ---- Mise à jour du menu déroulant quand un pays est cliqué ----
   observeEvent(input$map_shape_click, {
@@ -410,8 +431,8 @@ server <- function(input, output, session){
   # ---- Filtrage des recettes selon la région ou le pays sélectionné ----
   recettes_par_carte <- reactive({
     selected_region <- input$region_select
-    if (selected_region == "Neutre") {
-      return(data.frame())  # Retourne un tableau vide si "Neutre" est sélectionné
+    if (selected_region == "Aucun") {
+      return(data.frame())  # Retourne un tableau vide si "Aucun" est sélectionné
     } else {
       return(recette %>% filter(cuisine == selected_region))
     }
