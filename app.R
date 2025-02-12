@@ -198,6 +198,19 @@ ui <- fluidPage(
              )
     ),
     
+    #------ FAVORIS ------
+    tabPanel("Favoris",
+             tabsetPanel(
+               id = "favoris_tabs",
+               tabPanel("Liste des favoris",
+                        DTOutput("fav_table")
+               ),
+               tabPanel("Recette",
+                        uiOutput("fav_details")
+               )
+             )
+    ),
+    
   )
 )
 
@@ -208,6 +221,8 @@ ui <- fluidPage(
 #---------- 4. SERVEUR ----------
 
 server <- function(input, output, session){
+  
+  favorites <- reactiveVal(recette[0, ])
   
   #----- PRESENTATION -----
   
@@ -276,27 +291,27 @@ server <- function(input, output, session){
     }
   })
   
-  
   output$recette_details <- renderUI({
     req(selected_recipe())  
-    
     recipe <- selected_recipe()
     
     ingredients_list <- strsplit(recipe$ingr_name, ",")[[1]]
     quantities_list <- strsplit(recipe$ingr_qt, ",")[[1]]
     
-    ingredients_html <- lapply(1:length(ingredients_list), function(i) {
-      if (is.na(quantities_list[i])){
-        
+    ingredients_html <- lapply(seq_along(ingredients_list), function(i) {
+      if (is.na(quantities_list[i]) || quantities_list[i] == "") {
         paste0("<li>", ingredients_list[i], "</li>")
-        
       } else {
-      paste0("<li>", ingredients_list[i], " - ", quantities_list[i], "</li>")
+        paste0("<li>", ingredients_list[i], " - ", quantities_list[i], "</li>")
       }
     }) |> paste(collapse = "")
     
     tagList(
       div(style = "border: 2px solid #ccc; padding: 15px; margin-bottom: 20px; background-color: #f9f9f9; position: relative;",
+          # Bouton coeur (favori) placé à gauche de la croix
+          actionButton("add_to_fav", " Favoris ", icon = icon("heart"), 
+                       style = "position: absolute; top: 5px; right: 50px; background: none; border: none; font-size: 18px; color: red; cursor: pointer;"),
+          # Bouton de fermeture
           actionButton("close_recipe", "✖", 
                        style = "position: absolute; top: 5px; right: 10px; background: none; border: none; font-size: 18px; color: red; cursor: pointer;"),
           fluidRow(
@@ -500,6 +515,8 @@ server <- function(input, output, session){
     
     tagList(
       div(style = "border: 2px solid #ccc; padding: 15px; margin-bottom: 20px; background-color: #f9f9f9; position: relative;",
+          actionButton("add_to_fav", " Favoris ", icon = icon("heart"), 
+                       style = "position: absolute; top: 5px; right: 50px; background: none; border: none; font-size: 18px; color: red; cursor: pointer;"),
           actionButton("close_recipe_carte", "✖", 
                        style = "position: absolute; top: 5px; right: 10px; background: none; border: none; font-size: 18px; color: red; cursor: pointer;"),
           
@@ -575,7 +592,6 @@ server <- function(input, output, session){
   
   
   
-  
   #----- FOND DE PLACARD -----
   recettes_found_ingredients <- reactiveVal(data.frame())
   
@@ -633,6 +649,8 @@ server <- function(input, output, session){
   
   tagList(
     div(style = "border: 2px solid #ccc; padding: 15px; margin-bottom: 20px; background-color: #f9f9f9; position: relative;",
+        actionButton("add_to_fav", " Favoris ", icon = icon("heart"), 
+                     style = "position: absolute; top: 5px; right: 50px; background: none; border: none; font-size: 18px; color: red; cursor: pointer;"),
         actionButton("close_recipe_placard", "✖", 
                      style = "position: absolute; top: 5px; right: 10px; background: none; border: none; font-size: 18px; color: red; cursor: pointer;"),
         fluidRow(
@@ -659,7 +677,7 @@ server <- function(input, output, session){
     selected_recipe(NULL)
     updateTabsetPanel(session, "placard_tabs", selected = "Ingrédients")
   })
-
+  
   
   #----- BARRE DE RECHERCHE -----
   recettes_found_name <- reactiveVal(data.frame())
@@ -716,6 +734,8 @@ server <- function(input, output, session){
     
     tagList(
       div(style = "border: 2px solid #ccc; padding: 15px; margin-bottom: 20px; background-color: #f9f9f9; position: relative;",
+          actionButton("add_to_fav", " Favoris ", icon = icon("heart"), 
+                       style = "position: absolute; top: 5px; right: 50px; background: none; border: none; font-size: 18px; color: red; cursor: pointer;"),
           actionButton("close_recipe_barre", "✖", 
                        style = "position: absolute; top: 5px; right: 10px; background: none; border: none; font-size: 18px; color: red; cursor: pointer;"),
           fluidRow(
@@ -743,8 +763,78 @@ server <- function(input, output, session){
     updateTabsetPanel(session, "barre_tabs", selected = "Nom de la recette")
   })
   
-  #----- INFORMATION -----
+  #----- FAVORIS -----
   
+  # Lorsqu'on clique sur le bouton "add_to_fav" dans l'un des onglets de recette
+  observeEvent(input$add_to_fav, {
+    req(selected_recipe())
+    current_fav <- favorites()
+    if (!(selected_recipe()$name %in% current_fav$name)) {
+      favorites(rbind(current_fav, selected_recipe()))
+    }
+    showNotification("Recette ajoutée aux favoris", type = "message")
+  })
+  
+  # Affichage du tableau des favoris
+  output$fav_table <- renderDT({
+    fav_data <- favorites()
+    if(nrow(fav_data) == 0) return(NULL)
+    datatable(fav_data[, c("name", "description", "prep_time")],
+              selection = "single",
+              options = list(pageLength = 5))
+  })
+  
+  # Sélection d'une recette favorite
+  observeEvent(input$fav_table_rows_selected, {
+    selected_row <- input$fav_table_rows_selected
+    if(length(selected_row) > 0) {
+      selected_recipe(favorites()[selected_row, ])
+      updateTabsetPanel(session, "favoris_tabs", selected = "Recette")
+    }
+  })
+  
+  # Affichage de la recette dans l'onglet Favoris
+  output$fav_details <- renderUI({
+    req(selected_recipe())
+    recipe <- selected_recipe()
+    ingredients_list <- strsplit(recipe$ingr_name, ",")[[1]]
+    quantities_list <- strsplit(recipe$ingr_qt, ",")[[1]]
+    ingredients_html <- lapply(seq_along(ingredients_list), function(i) {
+      if (is.na(quantities_list[i]) || quantities_list[i] == "") {
+        paste0("<li>", ingredients_list[i], "</li>")
+      } else {
+        paste0("<li>", ingredients_list[i], " - ", quantities_list[i], "</li>")
+      }
+    }) |> paste(collapse = "")
+    
+    tagList(
+      div(style = "border: 2px solid #ccc; padding: 15px; margin-bottom: 20px; background-color: #f9f9f9; position: relative;",
+          actionButton("close_recipe_fav", "✖", 
+                       style = "position: absolute; top: 5px; right: 10px; background: none; border: none; font-size: 18px; color: red; cursor: pointer;"),
+          fluidRow(
+            column(4, 
+                   p(strong("Régime : "), recipe$diet),
+                   p(strong("Temps de préparation : "), recipe$prep_time, " min"),
+                   p(strong("Temps de cuisson : "), recipe$cook_time, " min")
+            ),
+            column(8, 
+                   h3(recipe$name),
+                   img(src = recipe$image_url, width = "100%", 
+                       style = "max-height: 300px; object-fit: cover; display: block; margin: 0 auto;")
+            )
+          ),
+          h4("Ingrédients"),
+          HTML(paste0("<ul>", ingredients_html, "</ul>")),
+          h4("Instructions"),
+          p(recipe$instructions)
+      )
+    )
+  })
+  
+  observeEvent(input$close_recipe_fav, {
+    selected_recipe(NULL)
+    updateTabsetPanel(session, "favoris_tabs", selected = "Liste des favoris")
+  })
 }
 
 
