@@ -14,9 +14,6 @@ library(htmltools)
 library(webshot)
 
 
-
-
-
 #----- Isaline -----
 
 library(stringr)
@@ -292,28 +289,20 @@ server <- function(input, output, session){
   })
   
   output$recette_details <- renderUI({
-    req(selected_recipe())  
+    req(selected_recipe())
     recipe <- selected_recipe()
-    
-    ingredients_list <- strsplit(recipe$ingr_name, ",")[[1]]
-    quantities_list <- strsplit(recipe$ingr_qt, ",")[[1]]
-    
-    ingredients_html <- lapply(seq_along(ingredients_list), function(i) {
-      if (is.na(quantities_list[i]) || quantities_list[i] == "") {
-        paste0("<li>", ingredients_list[i], "</li>")
-      } else {
-        paste0("<li>", ingredients_list[i], " - ", quantities_list[i], "</li>")
-      }
-    }) |> paste(collapse = "")
+    ingredients_list <- strsplit(recipe$ingr_qt, "(?<=[^\\d/])(?=\\d)|,\\s*", perl = TRUE)[[1]]
+    ingredients_list <- ingredients_list[trimws(ingredients_list) != ""]
+    ingredients_html <- paste0("<li>", ingredients_list, "</li>", collapse = "")
     
     tagList(
       div(style = "border: 2px solid #ccc; padding: 15px; margin-bottom: 20px; background-color: #f9f9f9; position: relative;",
-          # Bouton coeur (favori) placé à gauche de la croix
           actionButton("add_to_fav", " Favoris ", icon = icon("heart"), 
                        style = "position: absolute; top: 5px; right: 50px; background: none; border: none; font-size: 18px; color: red; cursor: pointer;"),
-          # Bouton de fermeture
+          
           actionButton("close_recipe", "✖", 
                        style = "position: absolute; top: 5px; right: 10px; background: none; border: none; font-size: 18px; color: red; cursor: pointer;"),
+          
           fluidRow(
             column(4, 
                    p(strong("Régime : "), recipe$diet),
@@ -323,7 +312,7 @@ server <- function(input, output, session){
             column(8, 
                    h3(recipe$name),
                    img(src = recipe$image_url, width = "100%", 
-                       style = "max-height: 300px; object-fit: cover; display: block; margin: 0 auto;")  
+                       style = "max-height: 300px; object-fit: cover; display: block; margin: 0 auto;")
             )
           ),
           h4("Ingrédients"),
@@ -333,6 +322,7 @@ server <- function(input, output, session){
       )
     )
   })
+  
   
   observeEvent(input$close_recipe, {
     selected_recipe(NULL)
@@ -501,28 +491,18 @@ server <- function(input, output, session){
   output$recette_details_carte <- renderUI({
     req(selected_recipe())
     recipe <- selected_recipe()
-    
-    ingredients_list <- strsplit(recipe$ingr_name, ",")[[1]]
-    quantities_list <- strsplit(recipe$ingr_qt, ",")[[1]]
-    
-    ingredients_html <- lapply(seq_along(ingredients_list), function(i) {
-      if (is.na(quantities_list[i]) || quantities_list[i] == "") {
-        paste0("<li>", ingredients_list[i], "</li>")
-      } else {
-        paste0("<li>", ingredients_list[i], " - ", quantities_list[i], "</li>")
-      }
-    }) |> paste(collapse = "")
+    ingredients_list <- strsplit(recipe$ingr_qt, "(?<=[^\\d/])(?=\\d)|,\\s*", perl = TRUE)[[1]]
+    ingredients_list <- ingredients_list[trimws(ingredients_list) != ""]
+    ingredients_html <- paste0("<li>", ingredients_list, "</li>", collapse = "")
     
     tagList(
       div(style = "border: 2px solid #ccc; padding: 15px; margin-bottom: 20px; background-color: #f9f9f9; position: relative;",
           actionButton("add_to_fav", " Favoris ", icon = icon("heart"), 
                        style = "position: absolute; top: 5px; right: 50px; background: none; border: none; font-size: 18px; color: red; cursor: pointer;"),
-          actionButton("close_recipe_carte", "✖", 
-                       style = "position: absolute; top: 5px; right: 10px; background: none; border: none; font-size: 18px; color: red; cursor: pointer;"),
-          
-          # Bouton de téléchargement
           downloadButton("download_recipe", "", 
                          style = "position: absolute; top: 5px; right: 100px; background: none; border: 1px solid #007bff; font-size: 14px; color: #007bff; cursor: pointer;"),
+          actionButton("close_recipe_carte", "✖", 
+                       style = "position: absolute; top: 5px; right: 10px; background: none; border: none; font-size: 18px; color: red; cursor: pointer;"),
           
           fluidRow(
             column(4, 
@@ -533,7 +513,7 @@ server <- function(input, output, session){
             column(8, 
                    h3(recipe$name),
                    img(src = recipe$image_url, width = "100%", 
-                       style = "max-height: 300px; object-fit: cover; display: block; margin: 0 auto;")  
+                       style = "max-height: 300px; object-fit: cover; display: block; margin: 0 auto;")
             )
           ),
           h4("Ingrédients"),
@@ -630,48 +610,38 @@ server <- function(input, output, session){
   })
   
   output$recette_details_placard <- renderUI({
-  req(selected_recipe())  
-  
-  recipe <- selected_recipe()
-  
-  ingredients_list <- strsplit(recipe$ingr_name, ",")[[1]]
-  quantities_list <- strsplit(recipe$ingr_qt, ",")[[1]]
-  
-  ingredients_html <- lapply(1:length(ingredients_list), function(i) {
-    if (is.na(quantities_list[i])){
-      
-      paste0("<li>", ingredients_list[i], "</li>")
-      
-    } else {
-      paste0("<li>", ingredients_list[i], " - ", quantities_list[i], "</li>")
-    }
-  }) |> paste(collapse = "")
-  
-  tagList(
-    div(style = "border: 2px solid #ccc; padding: 15px; margin-bottom: 20px; background-color: #f9f9f9; position: relative;",
-        actionButton("add_to_fav", " Favoris ", icon = icon("heart"), 
-                     style = "position: absolute; top: 5px; right: 50px; background: none; border: none; font-size: 18px; color: red; cursor: pointer;"),
-        actionButton("close_recipe_placard", "✖", 
-                     style = "position: absolute; top: 5px; right: 10px; background: none; border: none; font-size: 18px; color: red; cursor: pointer;"),
-        fluidRow(
-          column(4, 
-                 p(strong("Régime : "), recipe$diet),
-                 p(strong("Temps de préparation : "), recipe$prep_time, " min"),
-                 p(strong("Temps de cuisson : "), recipe$cook_time, " min")
+    req(selected_recipe())
+    recipe <- selected_recipe()
+    ingredients_list <- strsplit(recipe$ingr_qt, "(?<=[^\\d/])(?=\\d)|,\\s*", perl = TRUE)[[1]]
+    ingredients_list <- ingredients_list[trimws(ingredients_list) != ""]
+    ingredients_html <- paste0("<li>", ingredients_list, "</li>", collapse = "")
+    
+    tagList(
+      div(style = "border: 2px solid #ccc; padding: 15px; margin-bottom: 20px; background-color: #f9f9f9; position: relative;",
+          actionButton("add_to_fav", " Favoris ", icon = icon("heart"), 
+                       style = "position: absolute; top: 5px; right: 50px; background: none; border: none; font-size: 18px; color: red; cursor: pointer;"),
+          
+          actionButton("close_recipe_placard", "✖", 
+                       style = "position: absolute; top: 5px; right: 10px; background: none; border: none; font-size: 18px; color: red; cursor: pointer;"),
+          fluidRow(
+            column(4, 
+                   p(strong("Régime : "), recipe$diet),
+                   p(strong("Temps de préparation : "), recipe$prep_time, " min"),
+                   p(strong("Temps de cuisson : "), recipe$cook_time, " min")
+            ),
+            column(8, 
+                   h3(recipe$name),
+                   img(src = recipe$image_url, width = "100%", 
+                       style = "max-height: 300px; object-fit: cover; display: block; margin: 0 auto;")
+            )
           ),
-          column(8, 
-                 h3(recipe$name),
-                 img(src = recipe$image_url, width = "100%", 
-                     style = "max-height: 300px; object-fit: cover; display: block; margin: 0 auto;")  
-          )
-        ),
-        h4("Ingrédients"),
-        HTML(paste0("<ul>", ingredients_html, "</ul>")),
-        h4("Instructions"),
-        p(recipe$instructions)
+          h4("Ingrédients"),
+          HTML(paste0("<ul>", ingredients_html, "</ul>")),
+          h4("Instructions"),
+          p(recipe$instructions)
+      )
     )
-  )
-})
+  })
 
   observeEvent(input$close_recipe_placard, {
     selected_recipe(NULL)
@@ -715,27 +685,17 @@ server <- function(input, output, session){
   })
   
   output$recette_details_barre <- renderUI({
-    req(selected_recipe())  
-    
+    req(selected_recipe())
     recipe <- selected_recipe()
-    
-    ingredients_list <- strsplit(recipe$ingr_name, ",")[[1]]
-    quantities_list <- strsplit(recipe$ingr_qt, ",")[[1]]
-    
-    ingredients_html <- lapply(1:length(ingredients_list), function(i) {
-      if (is.na(quantities_list[i])){
-        
-        paste0("<li>", ingredients_list[i], "</li>")
-        
-      } else {
-        paste0("<li>", ingredients_list[i], " - ", quantities_list[i], "</li>")
-      }
-    }) |> paste(collapse = "")
+    ingredients_list <- strsplit(recipe$ingr_qt, "(?<=[^\\d/])(?=\\d)|,\\s*", perl = TRUE)[[1]]
+    ingredients_list <- ingredients_list[trimws(ingredients_list) != ""]
+    ingredients_html <- paste0("<li>", ingredients_list, "</li>", collapse = "")
     
     tagList(
       div(style = "border: 2px solid #ccc; padding: 15px; margin-bottom: 20px; background-color: #f9f9f9; position: relative;",
           actionButton("add_to_fav", " Favoris ", icon = icon("heart"), 
                        style = "position: absolute; top: 5px; right: 50px; background: none; border: none; font-size: 18px; color: red; cursor: pointer;"),
+          
           actionButton("close_recipe_barre", "✖", 
                        style = "position: absolute; top: 5px; right: 10px; background: none; border: none; font-size: 18px; color: red; cursor: pointer;"),
           fluidRow(
@@ -747,7 +707,7 @@ server <- function(input, output, session){
             column(8, 
                    h3(recipe$name),
                    img(src = recipe$image_url, width = "100%", 
-                       style = "max-height: 300px; object-fit: cover; display: block; margin: 0 auto;")  
+                       style = "max-height: 300px; object-fit: cover; display: block; margin: 0 auto;")
             )
           ),
           h4("Ingrédients"),
@@ -765,7 +725,6 @@ server <- function(input, output, session){
   
   #----- FAVORIS -----
   
-  # Lorsqu'on clique sur le bouton "add_to_fav" dans l'un des onglets de recette
   observeEvent(input$add_to_fav, {
     req(selected_recipe())
     current_fav <- favorites()
@@ -775,7 +734,6 @@ server <- function(input, output, session){
     showNotification("Recette ajoutée aux favoris", type = "message")
   })
   
-  # Affichage du tableau des favoris
   output$fav_table <- renderDT({
     fav_data <- favorites()
     if(nrow(fav_data) == 0) return(NULL)
@@ -784,7 +742,6 @@ server <- function(input, output, session){
               options = list(pageLength = 5))
   })
   
-  # Sélection d'une recette favorite
   observeEvent(input$fav_table_rows_selected, {
     selected_row <- input$fav_table_rows_selected
     if(length(selected_row) > 0) {
@@ -793,22 +750,18 @@ server <- function(input, output, session){
     }
   })
   
-  # Affichage de la recette dans l'onglet Favoris
   output$fav_details <- renderUI({
     req(selected_recipe())
     recipe <- selected_recipe()
-    ingredients_list <- strsplit(recipe$ingr_name, ",")[[1]]
-    quantities_list <- strsplit(recipe$ingr_qt, ",")[[1]]
-    ingredients_html <- lapply(seq_along(ingredients_list), function(i) {
-      if (is.na(quantities_list[i]) || quantities_list[i] == "") {
-        paste0("<li>", ingredients_list[i], "</li>")
-      } else {
-        paste0("<li>", ingredients_list[i], " - ", quantities_list[i], "</li>")
-      }
-    }) |> paste(collapse = "")
+    ingredients_list <- strsplit(recipe$ingr_qt, "(?<=[^\\d/])(?=\\d)|,\\s*", perl = TRUE)[[1]]
+    ingredients_list <- ingredients_list[trimws(ingredients_list) != ""]
+    ingredients_html <- paste0("<li>", ingredients_list, "</li>", collapse = "")
     
     tagList(
       div(style = "border: 2px solid #ccc; padding: 15px; margin-bottom: 20px; background-color: #f9f9f9; position: relative;",
+          actionButton("add_to_fav", " Favoris ", icon = icon("heart"), 
+                       style = "position: absolute; top: 5px; right: 50px; background: none; border: none; font-size: 18px; color: red; cursor: pointer;"),
+          
           actionButton("close_recipe_fav", "✖", 
                        style = "position: absolute; top: 5px; right: 10px; background: none; border: none; font-size: 18px; color: red; cursor: pointer;"),
           fluidRow(
