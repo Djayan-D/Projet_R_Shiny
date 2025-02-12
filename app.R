@@ -80,31 +80,34 @@ ui <- fluidPage(
     
     # ----- RECHERCHE PAR CARACTERISTIQUES -----
     tabPanel("Recherche selon caractéristiques",
-             sidebarLayout(
-               sidebarPanel(
-                 h4("Choix du régime"),  
-                 selectInput("diet", "Régime alimentaire :", choices = regimes_disponibles, selected = "None"),
-                 
-                 h4("Ingrédients souhaités"),
-                 textInput("ing1", "Ingrédient 1"),
-                 textInput("ing2", "Ingrédient 2"),
-                 textInput("ing3", "Ingrédient 3"),
-                 
-                 h4("Allergènes"), 
-                 textInput("allergie", "Ingrédients à éviter"),
-                 
-                 h4("Temps de préparation (cuisson comprise) maximal"),
-                 sliderTextInput("max_prep_time", "Temps maximal :", 
-                                 choices = names(temps_labels), selected = "2h ou plus"),
-                 
-                 actionButton("search", "Rechercher")
+             tabsetPanel(
+               id = "carac_tabs",  # id du nested tabset
+               tabPanel("Caractéristiques",  # sous-onglet pour la recherche
+                        sidebarLayout(
+                          sidebarPanel(
+                            h4("Choix du régime"),  
+                            selectInput("diet", "Régime alimentaire :", choices = regimes_disponibles, selected = "None"),
+                            h4("Ingrédients souhaités"),
+                            textInput("ing1", "Ingrédient 1"),
+                            textInput("ing2", "Ingrédient 2"),
+                            textInput("ing3", "Ingrédient 3"),
+                            h4("Allergènes"), 
+                            textInput("allergie", "Ingrédients à éviter"),
+                            h4("Temps de préparation (cuisson comprise) maximal"),
+                            sliderTextInput("max_prep_time", "Temps maximal :", choices = names(temps_labels), selected = "2h ou plus"),
+                            actionButton("search", "Rechercher")
+                          ),
+                          mainPanel(
+                            DTOutput("recette_table")
+                          )
+                        )
                ),
-               
-               mainPanel(
-                 uiOutput("recette_details"),
-                 DTOutput("recette_table")
+               tabPanel("Recette",  # sous-onglet pour l'affichage de la recette sélectionnée
+                        uiOutput("recette_details")
                )
-             )),
+             )
+    ),
+    
     
     
     # ----- RECHERCHE PAR CARTE -----
@@ -141,42 +144,60 @@ ui <- fluidPage(
     
     # ----- FOND DE PLACARD -----
     tabPanel("Fond de placard",
-             sidebarLayout(
-               sidebarPanel(
-                 h4("Sélection d'ingrédients (max 10)"),
-                 textInput("ing1", "Ingrédient 1 :"),
-                 textInput("ing2", "Ingrédient 2 :"),
-                 textInput("ing3", "Ingrédient 3 :"),
-                 textInput("ing4", "Ingrédient 4 :"),
-                 textInput("ing5", "Ingrédient 5 :"),
-                 textInput("ing6", "Ingrédient 6 :"),
-                 textInput("ing7", "Ingrédient 7 :"),
-                 textInput("ing8", "Ingrédient 8 :"),
-                 textInput("ing9", "Ingrédient 9 :"),
-                 textInput("ing10", "Ingrédient 10 :"),
-                 actionButton("search_by_ingredients", "Rechercher")
+             tabsetPanel(
+               id = "placard_tabs",
+               tabPanel("Ingrédients",  # sous-onglet pour le tableau
+                        sidebarLayout(
+                          sidebarPanel(
+                            h4("Sélection d'ingrédients (max 10)"),
+                            textInput("ing1", "Ingrédient 1 :"),
+                            textInput("ing2", "Ingrédient 2 :"),
+                            textInput("ing3", "Ingrédient 3 :"),
+                            textInput("ing4", "Ingrédient 4 :"),
+                            textInput("ing5", "Ingrédient 5 :"),
+                            textInput("ing6", "Ingrédient 6 :"),
+                            textInput("ing7", "Ingrédient 7 :"),
+                            textInput("ing8", "Ingrédient 8 :"),
+                            textInput("ing9", "Ingrédient 9 :"),
+                            textInput("ing10", "Ingrédient 10 :"),
+                            actionButton("search_by_ingredients", "Rechercher")
+                          ),
+                          mainPanel(
+                            DTOutput("recette_table_ingredients")
+                          )
+                        )
                ),
-               mainPanel(
-                 uiOutput("recette_details_placard"),
-                 DTOutput("recette_table_ingredients")
+               tabPanel("Recette",
+                        uiOutput("recette_details_placard")
                )
-             )),
+             )
+    ),
+    
     
     
     # ----- BARRE DE RECHERCHE -----
     
     tabPanel("Recherche",
-             sidebarLayout(
-               sidebarPanel(
-                 h4("Recherche par nom de recette"),
-                 textInput("recette_search", "Nom de la recette :"),
-                 actionButton("search_by_name", "Rechercher")
+             tabsetPanel(
+               id = "barre_tabs",
+               tabPanel("Nom de la recette",  # sous-onglet pour le tableau
+                        sidebarLayout(
+                          sidebarPanel(
+                            h4("Recherche par nom de recette"),
+                            textInput("recette_search", "Nom de la recette :"),
+                            actionButton("search_by_name", "Rechercher")
+                          ),
+                          mainPanel(
+                            DTOutput("recette_table_search")
+                          )
+                        )
                ),
-               mainPanel(
-                 uiOutput("recette_details_barre"),
-                 DTOutput("recette_table_search")
+               tabPanel("Recette",
+                        uiOutput("recette_details_barre")
                )
-             )),
+             )
+    ),
+    
   )
 )
 
@@ -251,8 +272,10 @@ server <- function(input, output, session){
     selected_row <- input$recette_table_rows_selected
     if (length(selected_row) > 0) {
       selected_recipe(recettes_filtrees()[selected_row, ])
+      updateTabsetPanel(session, "carac_tabs", selected = "Recette")
     }
   })
+  
   
   output$recette_details <- renderUI({
     req(selected_recipe())  
@@ -297,8 +320,10 @@ server <- function(input, output, session){
   })
   
   observeEvent(input$close_recipe, {
-    selected_recipe(NULL) 
+    selected_recipe(NULL)
+    updateTabsetPanel(session, "carac_tabs", selected = "Caractéristiques")
   })
+  
   
   
   
@@ -584,6 +609,7 @@ server <- function(input, output, session){
     selected_row <- input$recette_table_ingredients_rows_selected
     if (length(selected_row) > 0) {
       selected_recipe(recettes_found_ingredients()[selected_row, ])
+      updateTabsetPanel(session, "placard_tabs", selected = "Recette")
     }
   })
   
@@ -629,9 +655,10 @@ server <- function(input, output, session){
   )
 })
 
-observeEvent(input$close_recipe_placard, {
-  selected_recipe(NULL)
-})
+  observeEvent(input$close_recipe_placard, {
+    selected_recipe(NULL)
+    updateTabsetPanel(session, "placard_tabs", selected = "Ingrédients")
+  })
 
   
   #----- BARRE DE RECHERCHE -----
@@ -665,6 +692,7 @@ observeEvent(input$close_recipe_placard, {
     selected_row <- input$recette_table_search_rows_selected
     if (length(selected_row) > 0) {
       selected_recipe(recettes_found_name()[selected_row, ])
+      updateTabsetPanel(session, "barre_tabs", selected = "Recette")
     }
   })
   
@@ -712,6 +740,7 @@ observeEvent(input$close_recipe_placard, {
   
   observeEvent(input$close_recipe_barre, {
     selected_recipe(NULL)
+    updateTabsetPanel(session, "barre_tabs", selected = "Nom de la recette")
   })
   
   #----- INFORMATION -----
