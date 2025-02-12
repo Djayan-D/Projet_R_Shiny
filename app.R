@@ -78,8 +78,8 @@ ui <- fluidPage(
     # ----- RECHERCHE PAR CARACTERISTIQUES -----
     tabPanel("Recherche selon caractéristiques",
              tabsetPanel(
-               id = "carac_tabs",  # id du nested tabset
-               tabPanel("Caractéristiques",  # sous-onglet pour la recherche
+               id = "carac_tabs", 
+               tabPanel("Caractéristiques", 
                         sidebarLayout(
                           sidebarPanel(
                             h4("Choix du régime"),  
@@ -95,11 +95,11 @@ ui <- fluidPage(
                             actionButton("search", "Rechercher")
                           ),
                           mainPanel(
-                            DTOutput("recette_table")
+                            uiOutput("recette_table_ui")
                           )
                         )
                ),
-               tabPanel("Recette",  # sous-onglet pour l'affichage de la recette sélectionnée
+               tabPanel("Recette", 
                         uiOutput("recette_details")
                )
              )
@@ -270,9 +270,27 @@ server <- function(input, output, session){
     recettes_filtrees(recettes_filtrees_data) 
   })
   
-  output$recette_table <- renderDT({
-    if (nrow(recettes_filtrees()) == 0) return(NULL)
+  output$recette_table_ui <- renderUI({
+    # On vérifie si l'utilisateur a déjà cliqué sur "Rechercher"
+    if (input$search == 0) {
+      # Avant la première recherche, on n'affiche rien (ou un contenu par défaut)
+      return(NULL)
+    }
     
+    # Après un clic, si aucune recette n'a été trouvée...
+    if (nrow(recettes_filtrees()) == 0) {
+      div(
+        style = "text-align: center; margin-top: 20px;",
+        h4("Aucune recette trouvée. Veuillez modifier votre sélection.")
+      )
+    } else {
+      # Sinon, on affiche le tableau des recettes
+      DTOutput("recette_table")
+    }
+  })
+  
+  
+  output$recette_table <- renderDT({
     datatable(
       recettes_filtrees()[, c("name", "description", "prep_time")],
       selection = "single",
