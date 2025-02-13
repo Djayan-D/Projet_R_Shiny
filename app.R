@@ -97,19 +97,14 @@ ui <- fluidPage(
                           ),
                           mainPanel(
                             uiOutput("recette_table_ui")
-                          )
-                        )
-               ),
+                          ))),
                tabPanel("Recette", 
                         uiOutput("recette_details")
-               )
-             )
-    ),
+               ))),
     
     
     
     # ----- RECHERCHE PAR CARTE -----
-    
     tabPanel("Recherche par carte",
              tabsetPanel(
                id = "carte_tabs",
@@ -125,14 +120,10 @@ ui <- fluidPage(
                           mainPanel(
                             leafletOutput("map", height = "400px"),  # Hauteur de la carte
                             DTOutput("table_carte", width = "100%")  # Largeur du tableau à 100%
-                          )
-                        )
-               ),
+                          ))),
                tabPanel("Recette", 
                         uiOutput("recette_details_carte")
-               )
-             )
-    ),
+               ))),
     
     
     
@@ -144,7 +135,7 @@ ui <- fluidPage(
     tabPanel("Fond de placard",
              tabsetPanel(
                id = "placard_tabs",
-               tabPanel("Ingrédients",  # sous-onglet pour le tableau
+               tabPanel("Ingrédients", 
                         sidebarLayout(
                           sidebarPanel(
                             h4("Sélection d'ingrédients (max 10)"),
@@ -162,23 +153,18 @@ ui <- fluidPage(
                           ),
                           mainPanel(
                             DTOutput("recette_table_ingredients")
-                          )
-                        )
-               ),
+                          ))),
                tabPanel("Recette",
                         uiOutput("recette_details_placard")
-               )
-             )
-    ),
+               ))),
     
     
     
     # ----- BARRE DE RECHERCHE -----
-    
     tabPanel("Recherche",
              tabsetPanel(
                id = "barre_tabs",
-               tabPanel("Nom de la recette",  # sous-onglet pour le tableau
+               tabPanel("Nom de la recette",
                         sidebarLayout(
                           sidebarPanel(
                             h4("Recherche par nom de recette"),
@@ -187,14 +173,11 @@ ui <- fluidPage(
                           ),
                           mainPanel(
                             DTOutput("recette_table_search")
-                          )
-                        )
+                          ))
                ),
                tabPanel("Recette",
                         uiOutput("recette_details_barre")
-               )
-             )
-    ),
+               ))),
     
     #------ FAVORIS ------
     tabPanel("Favoris",
@@ -205,12 +188,9 @@ ui <- fluidPage(
                ),
                tabPanel("Recette",
                         uiOutput("fav_details")
-               )
-             )
-    ),
+               ))),
     
-  )
-)
+  ))
 
 
 
@@ -240,14 +220,11 @@ server <- function(input, output, session){
       tolower() |> 
       trimws()
     ingredients <- ingredients[ingredients != ""]  
-    
     allergenes <- tolower(input$allergie) |> trimws()
     allergenes <- unlist(strsplit(allergenes, "[^a-zA-Z]+"))  
     allergenes <- allergenes[allergenes != ""]  
-    
     diet_selected <- input$diet  
     max_prep <- temps_labels[input$max_prep_time]  
-    
     recettes_filtrees_data <- recette
     
     if (length(ingredients) > 0) {
@@ -272,20 +249,17 @@ server <- function(input, output, session){
   })
   
   output$recette_table_ui <- renderUI({
-    # On vérifie si l'utilisateur a déjà cliqué sur "Rechercher"
     if (input$search == 0) {
-      # Avant la première recherche, on n'affiche rien (ou un contenu par défaut)
+      
       return(NULL)
     }
     
-    # Après un clic, si aucune recette n'a été trouvée...
     if (nrow(recettes_filtrees()) == 0) {
       div(
         style = "text-align: center; margin-top: 20px;",
         h4("Aucune recette trouvée. Veuillez modifier votre sélection.")
       )
     } else {
-      # Sinon, on affiche le tableau des recettes
       DTOutput("recette_table")
     }
   })
@@ -318,7 +292,6 @@ server <- function(input, output, session){
       div(style = "border: 2px solid #ccc; padding: 15px; margin-bottom: 20px; background-color: #f9f9f9; position: relative;",
           actionButton("add_to_fav_carac", " Favoris ", icon = icon("heart"),
                        style = "position: absolute; top: 5px; right: 50px; background: none; border: none; font-size: 18px; color: grey; cursor: pointer;"),
-          
           actionButton("close_recipe", "✖", 
                        style = "position: absolute; top: 5px; right: 10px; background: none; border: none; font-size: 18px; color: red; cursor: pointer;"),
           
@@ -332,24 +305,18 @@ server <- function(input, output, session){
                    h3(recipe$name),
                    img(src = recipe$image_url, width = "100%", 
                        style = "max-height: 300px; object-fit: cover; display: block; margin: 0 auto;")
-            )
-          ),
+            )),
           h4("Ingrédients"),
           HTML(paste0("<ul>", ingredients_html, "</ul>")),
           h4("Instructions"),
           p(recipe$instructions)
-      )
-    )
+      ))
   })
-  
   
   observeEvent(input$close_recipe, {
     selected_recipe(NULL)
     updateTabsetPanel(session, "carac_tabs", selected = "Caractéristiques")
   })
-  
-  
-  
   
   # ---- RECHERCHE PAR CARTE ----
   
@@ -639,7 +606,6 @@ server <- function(input, output, session){
       div(style = "border: 2px solid #ccc; padding: 15px; margin-bottom: 20px; background-color: #f9f9f9; position: relative;",
           actionButton("add_to_fav_placard", " Favoris ", icon = icon("heart"),
                        style = "position: absolute; top: 5px; right: 50px; background: none; border: none; font-size: 18px; color: grey; cursor: pointer;"),
-          
           actionButton("close_recipe_placard", "✖", 
                        style = "position: absolute; top: 5px; right: 10px; background: none; border: none; font-size: 18px; color: red; cursor: pointer;"),
           fluidRow(
@@ -652,21 +618,18 @@ server <- function(input, output, session){
                    h3(recipe$name),
                    img(src = recipe$image_url, width = "100%", 
                        style = "max-height: 300px; object-fit: cover; display: block; margin: 0 auto;")
-            )
-          ),
+            )),
           h4("Ingrédients"),
           HTML(paste0("<ul>", ingredients_html, "</ul>")),
           h4("Instructions"),
           p(recipe$instructions)
-      )
-    )
+      ))
   })
 
   observeEvent(input$close_recipe_placard, {
     selected_recipe(NULL)
     updateTabsetPanel(session, "placard_tabs", selected = "Ingrédients")
   })
-  
   
   #----- BARRE DE RECHERCHE -----
   recettes_found_name <- reactiveVal(data.frame())
@@ -706,7 +669,6 @@ server <- function(input, output, session){
   output$recette_details_barre <- renderUI({
     req(selected_recipe())
     recipe <- selected_recipe()
-    
     ingredients_list <- strsplit(recipe$ingr_qt, "(?<=[^\\d/])(?=\\d)|,\\s*", perl = TRUE)[[1]]
     ingredients_list <- ingredients_list[trimws(ingredients_list) != ""]
     ingredients_html <- paste0("<li>", ingredients_list, "</li>", collapse = "")
@@ -715,7 +677,6 @@ server <- function(input, output, session){
       div(style = "border: 2px solid #ccc; padding: 15px; margin-bottom: 20px; background-color: #f9f9f9; position: relative;",
           actionButton("add_to_fav_barre", " Favoris ", icon = icon("heart"),
                        style = "position: absolute; top: 5px; right: 50px; background: none; border: none; font-size: 18px; color: grey; cursor: pointer;"),
-          
           actionButton("close_recipe_barre", "✖", 
                        style = "position: absolute; top: 5px; right: 10px; background: none; border: none; font-size: 18px; color: red; cursor: pointer;"),
           fluidRow(
@@ -728,14 +689,12 @@ server <- function(input, output, session){
                    h3(recipe$name),
                    img(src = recipe$image_url, width = "100%", 
                        style = "max-height: 300px; object-fit: cover; display: block; margin: 0 auto;")
-            )
-          ),
+            )),
           h4("Ingrédients"),
           HTML(paste0("<ul>", ingredients_html, "</ul>")),
           h4("Instructions"),
           p(recipe$instructions)
-      )
-    )
+      ))
   })
   
   observeEvent(input$close_recipe_barre, {
@@ -756,7 +715,6 @@ server <- function(input, output, session){
       all_columns <- union(colnames(current_fav), colnames(new_recipe))
       new_recipe <- new_recipe[, all_columns, drop = FALSE]
       current_fav <- current_fav[, all_columns, drop = FALSE]
-      
       if (!(new_recipe$name %in% current_fav$name)) {
         favorites(rbind(current_fav, new_recipe))
       }
@@ -780,8 +738,7 @@ server <- function(input, output, session){
       
       if (!(new_recipe$name %in% current_fav$name)) {
         favorites(rbind(current_fav, new_recipe))
-      }
-    }
+      }}
     shinyjs::runjs("$('#add_to_fav_carte').css('color', 'red');")
     showNotification("Recette ajoutée aux favoris", type = "message")
   })
@@ -797,7 +754,6 @@ server <- function(input, output, session){
       all_columns <- union(colnames(current_fav), colnames(new_recipe))
       new_recipe <- new_recipe[, all_columns, drop = FALSE]
       current_fav <- current_fav[, all_columns, drop = FALSE]
-      
       if (!(new_recipe$name %in% current_fav$name)) {
         favorites(rbind(current_fav, new_recipe))
       }}
@@ -811,7 +767,6 @@ server <- function(input, output, session){
     new_recipe <- selected_recipe()
     new_recipe <- new_recipe[, !colnames(new_recipe) %in% c("name_lower", "ingr_lower", "score")]
     current_fav <- favorites()
-    
     if (nrow(current_fav) == 0) {
       favorites(new_recipe)
     } else {
@@ -821,7 +776,6 @@ server <- function(input, output, session){
       if (!(new_recipe$name %in% current_fav$name)) {
         favorites(rbind(current_fav, new_recipe))
       }}
-    
     shinyjs::runjs("$('#add_to_fav_barre').css('color', 'red');")
     showNotification("Recette ajoutée aux favoris", type = "message")
   })
