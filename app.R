@@ -52,6 +52,7 @@ ui <- fluidPage(
     bootswatch = "united",
     base_font = "Merriweather",
     font_scale = 1 ),
+  useShinyjs(),
   
   
   tabsetPanel(
@@ -315,7 +316,7 @@ server <- function(input, output, session){
     
     tagList(
       div(style = "border: 2px solid #ccc; padding: 15px; margin-bottom: 20px; background-color: #f9f9f9; position: relative;",
-          actionButton("add_to_fav", " Favoris ", icon = icon("heart"), 
+          actionButton("add_to_fav_carac", " Favoris ", icon = icon("heart"), 
                        style = "position: absolute; top: 5px; right: 50px; background: none; border: none; font-size: 18px; color: red; cursor: pointer;"),
           
           actionButton("close_recipe", "✖", 
@@ -515,7 +516,7 @@ server <- function(input, output, session){
     
     tagList(
       div(style = "border: 2px solid #ccc; padding: 15px; margin-bottom: 20px; background-color: #f9f9f9; position: relative;",
-          actionButton("add_to_fav", " Favoris ", icon = icon("heart"), 
+          actionButton("add_to_fav_carte", " Favoris ", icon = icon("heart"), 
                        style = "position: absolute; top: 5px; right: 50px; background: none; border: none; font-size: 18px; color: red; cursor: pointer;"),
           downloadButton("download_recipe", "", 
                          style = "position: absolute; top: 5px; right: 100px; background: none; border: 1px solid #007bff; font-size: 14px; color: #007bff; cursor: pointer;"),
@@ -636,7 +637,7 @@ server <- function(input, output, session){
     
     tagList(
       div(style = "border: 2px solid #ccc; padding: 15px; margin-bottom: 20px; background-color: #f9f9f9; position: relative;",
-          actionButton("add_to_fav", " Favoris ", icon = icon("heart"), 
+          actionButton("add_to_fav_placard", " Favoris ", icon = icon("heart"), 
                        style = "position: absolute; top: 5px; right: 50px; background: none; border: none; font-size: 18px; color: red; cursor: pointer;"),
           
           actionButton("close_recipe_placard", "✖", 
@@ -705,14 +706,15 @@ server <- function(input, output, session){
   output$recette_details_barre <- renderUI({
     req(selected_recipe())
     recipe <- selected_recipe()
+    
     ingredients_list <- strsplit(recipe$ingr_qt, "(?<=[^\\d/])(?=\\d)|,\\s*", perl = TRUE)[[1]]
     ingredients_list <- ingredients_list[trimws(ingredients_list) != ""]
     ingredients_html <- paste0("<li>", ingredients_list, "</li>", collapse = "")
     
     tagList(
       div(style = "border: 2px solid #ccc; padding: 15px; margin-bottom: 20px; background-color: #f9f9f9; position: relative;",
-          actionButton("add_to_fav", " Favoris ", icon = icon("heart"), 
-                       style = "position: absolute; top: 5px; right: 50px; background: none; border: none; font-size: 18px; color: red; cursor: pointer;"),
+          actionButton("add_to_fav_barre", " Favoris ", icon = icon("heart"),
+                       style = "position: absolute; top: 5px; right: 50px; background: none; border: none; font-size: 18px; color: grey; cursor: pointer;"),
           
           actionButton("close_recipe_barre", "✖", 
                        style = "position: absolute; top: 5px; right: 10px; background: none; border: none; font-size: 18px; color: red; cursor: pointer;"),
@@ -741,20 +743,93 @@ server <- function(input, output, session){
     updateTabsetPanel(session, "barre_tabs", selected = "Nom de la recette")
   })
   
-  #----- FAVORIS -----
   
-  observeEvent(input$add_to_fav, {
+  #----- FAVORIS -----
+  observeEvent(input$add_to_fav_carac, {
     req(selected_recipe())
+    new_recipe <- selected_recipe()
+    new_recipe <- new_recipe[, !colnames(new_recipe) %in% c("name_lower", "ingr_lower", "score")]
     current_fav <- favorites()
-    if (!(selected_recipe()$name %in% current_fav$name)) {
-      favorites(rbind(current_fav, selected_recipe()))
+    if (nrow(current_fav) == 0) {
+      favorites(new_recipe)
+    } else {
+      all_columns <- union(colnames(current_fav), colnames(new_recipe))
+      new_recipe <- new_recipe[, all_columns, drop = FALSE]
+      current_fav <- current_fav[, all_columns, drop = FALSE]
+      
+      if (!(new_recipe$name %in% current_fav$name)) {
+        favorites(rbind(current_fav, new_recipe))
+      }
     }
+    shinyjs::runjs("$('#add_to_fav_carac').css('color', 'red');")
+    showNotification("Recette ajoutée aux favoris", type = "message")
+  })
+  
+  observeEvent(input$add_to_fav_carte, {
+    req(selected_recipe())
+    new_recipe <- selected_recipe()
+    new_recipe <- new_recipe[, !colnames(new_recipe) %in% c("name_lower", "ingr_lower", "score")]
+    current_fav <- favorites()
+    
+    if (nrow(current_fav) == 0) {
+      favorites(new_recipe)
+    } else {
+      all_columns <- union(colnames(current_fav), colnames(new_recipe))
+      new_recipe <- new_recipe[, all_columns, drop = FALSE]
+      current_fav <- current_fav[, all_columns, drop = FALSE]
+      
+      if (!(new_recipe$name %in% current_fav$name)) {
+        favorites(rbind(current_fav, new_recipe))
+      }
+    }
+    shinyjs::runjs("$('#add_to_fav_carte').css('color', 'red');")
+    showNotification("Recette ajoutée aux favoris", type = "message")
+  })
+  
+  observeEvent(input$add_to_fav_placard, {
+    req(selected_recipe())
+    new_recipe <- selected_recipe()
+    new_recipe <- new_recipe[, !colnames(new_recipe) %in% c("name_lower", "ingr_lower", "score")]
+    current_fav <- favorites()
+    if (nrow(current_fav) == 0) {
+      favorites(new_recipe)
+    } else {
+      all_columns <- union(colnames(current_fav), colnames(new_recipe))
+      new_recipe <- new_recipe[, all_columns, drop = FALSE]
+      current_fav <- current_fav[, all_columns, drop = FALSE]
+      
+      if (!(new_recipe$name %in% current_fav$name)) {
+        favorites(rbind(current_fav, new_recipe))
+      }}
+    shinyjs::runjs("$('#add_to_fav_placard').css('color', 'red');")
+    showNotification("Recette ajoutée aux favoris", type = "message")
+  })
+  
+  
+  observeEvent(input$add_to_fav_barre, {
+    req(selected_recipe())
+    new_recipe <- selected_recipe()
+    new_recipe <- new_recipe[, !colnames(new_recipe) %in% c("name_lower", "ingr_lower", "score")]
+    current_fav <- favorites()
+    
+    if (nrow(current_fav) == 0) {
+      favorites(new_recipe)
+    } else {
+      all_columns <- union(colnames(current_fav), colnames(new_recipe))
+      new_recipe <- new_recipe[, all_columns, drop = FALSE]
+      current_fav <- current_fav[, all_columns, drop = FALSE]
+      if (!(new_recipe$name %in% current_fav$name)) {
+        favorites(rbind(current_fav, new_recipe))
+      }}
+    
+    shinyjs::runjs("$('#add_to_fav_barre').css('color', 'red');")
     showNotification("Recette ajoutée aux favoris", type = "message")
   })
   
   output$fav_table <- renderDT({
     fav_data <- favorites()
-    if(nrow(fav_data) == 0) return(NULL)
+    if (nrow(fav_data) == 0) return(NULL)
+    fav_data <- fav_data[, !colnames(fav_data) %in% c("ingr_lower", "score")]
     datatable(fav_data[, c("name", "description", "prep_time")],
               selection = "single",
               options = list(pageLength = 5))
@@ -762,7 +837,7 @@ server <- function(input, output, session){
   
   observeEvent(input$fav_table_rows_selected, {
     selected_row <- input$fav_table_rows_selected
-    if(length(selected_row) > 0) {
+    if (length(selected_row) > 0) {
       selected_recipe(favorites()[selected_row, ])
       updateTabsetPanel(session, "favoris_tabs", selected = "Recette")
     }
@@ -777,7 +852,7 @@ server <- function(input, output, session){
     
     tagList(
       div(style = "border: 2px solid #ccc; padding: 15px; margin-bottom: 20px; background-color: #f9f9f9; position: relative;",
-          actionButton("add_to_fav", " Favoris ", icon = icon("heart"), 
+          actionButton("add_to_fav_barre", " Favoris ", icon = icon("heart"),
                        style = "position: absolute; top: 5px; right: 50px; background: none; border: none; font-size: 18px; color: red; cursor: pointer;"),
           
           actionButton("close_recipe_fav", "✖", 
@@ -805,13 +880,8 @@ server <- function(input, output, session){
   observeEvent(input$close_recipe_fav, {
     selected_recipe(NULL)
     updateTabsetPanel(session, "favoris_tabs", selected = "Liste des favoris")
-  })
+})
+  
 }
-
-
-
-
-
 #---------- 5. LANCER L'APPLICATION ----------
-
 shinyApp(ui = ui, server = server)
