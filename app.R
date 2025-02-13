@@ -316,8 +316,8 @@ server <- function(input, output, session){
     
     tagList(
       div(style = "border: 2px solid #ccc; padding: 15px; margin-bottom: 20px; background-color: #f9f9f9; position: relative;",
-          actionButton("add_to_fav_carac", " Favoris ", icon = icon("heart"), 
-                       style = "position: absolute; top: 5px; right: 50px; background: none; border: none; font-size: 18px; color: red; cursor: pointer;"),
+          actionButton("add_to_fav_carac", " Favoris ", icon = icon("heart"),
+                       style = "position: absolute; top: 5px; right: 50px; background: none; border: none; font-size: 18px; color: grey; cursor: pointer;"),
           
           actionButton("close_recipe", "✖", 
                        style = "position: absolute; top: 5px; right: 10px; background: none; border: none; font-size: 18px; color: red; cursor: pointer;"),
@@ -516,8 +516,8 @@ server <- function(input, output, session){
     
     tagList(
       div(style = "border: 2px solid #ccc; padding: 15px; margin-bottom: 20px; background-color: #f9f9f9; position: relative;",
-          actionButton("add_to_fav_carte", " Favoris ", icon = icon("heart"), 
-                       style = "position: absolute; top: 5px; right: 50px; background: none; border: none; font-size: 18px; color: red; cursor: pointer;"),
+          actionButton("add_to_fav_carte", " Favoris ", icon = icon("heart"),
+                       style = "position: absolute; top: 5px; right: 50px; background: none; border: none; font-size: 18px; color: grey; cursor: pointer;"),
           downloadButton("download_recipe", "", 
                          style = "position: absolute; top: 5px; right: 100px; background: none; border: 1px solid #007bff; font-size: 14px; color: #007bff; cursor: pointer;"),
           actionButton("close_recipe_carte", "✖", 
@@ -637,8 +637,8 @@ server <- function(input, output, session){
     
     tagList(
       div(style = "border: 2px solid #ccc; padding: 15px; margin-bottom: 20px; background-color: #f9f9f9; position: relative;",
-          actionButton("add_to_fav_placard", " Favoris ", icon = icon("heart"), 
-                       style = "position: absolute; top: 5px; right: 50px; background: none; border: none; font-size: 18px; color: red; cursor: pointer;"),
+          actionButton("add_to_fav_placard", " Favoris ", icon = icon("heart"),
+                       style = "position: absolute; top: 5px; right: 50px; background: none; border: none; font-size: 18px; color: grey; cursor: pointer;"),
           
           actionButton("close_recipe_placard", "✖", 
                        style = "position: absolute; top: 5px; right: 10px; background: none; border: none; font-size: 18px; color: red; cursor: pointer;"),
