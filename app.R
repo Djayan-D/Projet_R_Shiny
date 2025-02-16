@@ -52,9 +52,9 @@ ui <- fluidPage(
   theme = bs_theme(
     bootswatch = "united",
     base_font = font_google("Lato", wght = 400),  # Police plus moderne et lisible
-    "nav-tabs-link-active-bg" = "#A0522D",  # Brun clair au lieu de marron foncé
+    "nav-tabs-link-active-bg" = "#D29B42",  # Brun clair au lieu de marron foncé
     "nav-tabs-link-active-color" = "white",
-    "nav-pills-link-active-bg" = "#D2691E",  # Brun un peu plus clair
+    "nav-pills-link-active-bg" = "#E0B97A",  # Brun un peu plus clair
     "nav-pills-link-active-color" = "white"
   ),
   
