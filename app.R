@@ -28,7 +28,7 @@ library(bslib)
 
 #---------- 2. BASE DE DONNÉES ----------
 
-recette <- read_csv("data/recettes.csv")
+recette <- read_csv("data/recettes_v2.csv")
 
 colnames(recette)[c(6:9)] <- c("ingr_name", "ingr_qt", "prep_time", "cook_time")
 
@@ -321,38 +321,82 @@ server <- function(input, output, session){
   # ---- RECHERCHE PAR CARTE ----
   
   # ---- Définition des régions pour le zoom ----
+  
+  countries_to_keep <- c(
+    "Pakistan", "Népal", "Bangladesh", "Afghanistan", "Sri Lanka", "Birmanie", 
+    "Malaisie", "Maurice", "Fidji", "Inde", "France", "États-Unis", "Liban", 
+    "Thaïlande", "Italie", "Syrie", "Chine", "Maroc", "Grèce", "Indonésie", 
+    "Turquie", "Vietnam", "Irlande", "Canada", "NA", "Égypte", "Royaume-Uni", 
+    "Espagne", "Irak", "Allemagne", "Oman", "Cameroun", "Iran", "Mexique", 
+    "Suisse", "Autriche", "Japon", "Pérou", "Russie", "Pologne", "Corée du Sud", 
+    "Suède", "Hongrie", "Argentine", "Mozambique", "Pays-Bas", "Palestine", 
+    "Colombie", "Caraïbes", "Nouvelle-Zélande", "Cuba", "Pays de Galles", "Taïwan", 
+    "Chypre", "Jordanie", "Arménie", "Singapour", "Tunisie", "Afrique du Sud", 
+    "Israël", "Yémen", "Danemark"
+  )
+  
   region_coords <- list(
-    "Inde du Nord" = list(lat = 28, lon = 77, zoom = 6),
-    "Inde" = list(lat = 22, lon = 78, zoom = 5),
-    "Inde du Sud" = list(lat = 12, lon = 78, zoom = 6),
-    "Europe" = list(lat = 50, lon = 10, zoom = 4),
-    "Continental" = list(lat = 45, lon = 7, zoom = 5),
-    "Moyen-Orient" = list(lat = 25, lon = 45, zoom = 5),
+    "Pakistan" = list(lat = 30, lon = 70, zoom = 6),
     "Népal" = list(lat = 28, lon = 84, zoom = 7),
-    "Inde du Nord-Est" = list(lat = 26, lon = 91, zoom = 7),
+    "Bangladesh" = list(lat = 24, lon = 90, zoom = 6),
+    "Afghanistan" = list(lat = 33, lon = 65, zoom = 6),
+    "Sri Lanka" = list(lat = 7, lon = 81, zoom = 7),
+    "Birmanie" = list(lat = 21, lon = 96, zoom = 6),
+    "Malaisie" = list(lat = 3, lon = 101, zoom = 6),
+    "Maurice" = list(lat = -20, lon = 57, zoom = 8),
+    "Fidji" = list(lat = -17, lon = 178, zoom = 8),
+    "Inde" = list(lat = 22, lon = 78, zoom = 5),
+    "France" = list(lat = 46, lon = 2, zoom = 5),
+    "États-Unis" = list(lat = 37, lon = -95, zoom = 4),
+    "Liban" = list(lat = 33, lon = 35, zoom = 7),
     "Thaïlande" = list(lat = 15, lon = 100, zoom = 6),
     "Italie" = list(lat = 42, lon = 12, zoom = 6),
+    "Syrie" = list(lat = 34, lon = 38, zoom = 6),
     "Chine" = list(lat = 35, lon = 105, zoom = 5),
-    "Méditerranée" = list(lat = 35, lon = 18, zoom = 5),
-    "Asie" = list(lat = 30, lon = 100, zoom = 3),
+    "Maroc" = list(lat = 32, lon = -5, zoom = 6),
+    "Grèce" = list(lat = 39, lon = 22, zoom = 6),
     "Indonésie" = list(lat = -5, lon = 120, zoom = 6),
+    "Turquie" = list(lat = 38, lon = 35, zoom = 6),
     "Vietnam" = list(lat = 14, lon = 108, zoom = 6),
-    "États-Unis" = list(lat = 37, lon = -95, zoom = 4),
-    "France" = list(lat = 46, lon = 2, zoom = 5),
-    "Mexique" = list(lat = 23, lon = -102, zoom = 5),
-    "Japon" = list(lat = 36, lon = 138, zoom = 6),
-    "Afrique" = list(lat = 0, lon = 20, zoom = 3),
-    "Sri Lanka" = list(lat = 7, lon = 81, zoom = 7),
-    "Suède" = list(lat = 60, lon = 18, zoom = 5),
-    "Afghanistan" = list(lat = 33, lon = 65, zoom = 6),
-    "Inde du Centre" = list(lat = 22, lon = 80, zoom = 6),
-    "Caraïbes" = list(lat = 15, lon = -60, zoom = 5),
-    "Corée" = list(lat = 37, lon = 127, zoom = 6),
-    "Malaisie" = list(lat = 3, lon = 101, zoom = 6),
-    "Birmanie" = list(lat = 21, lon = 96, zoom = 6),
+    "Irlande" = list(lat = 53, lon = -8, zoom = 7),
+    "Canada" = list(lat = 56, lon = -106, zoom = 4),
+    "Égypte" = list(lat = 26, lon = 30, zoom = 6),
     "Royaume-Uni" = list(lat = 54, lon = -2, zoom = 5),
-    "Bangladesh" = list(lat = 24, lon = 90, zoom = 6),
-    "Singapour" = list(lat = 1.3521, lon = 103.8198, zoom = 8)
+    "Espagne" = list(lat = 40, lon = -3, zoom = 5),
+    "Irak" = list(lat = 33, lon = 44, zoom = 6),
+    "Allemagne" = list(lat = 51, lon = 10, zoom = 5),
+    "Oman" = list(lat = 21, lon = 57, zoom = 6),
+    "Cameroun" = list(lat = 4, lon = 12, zoom = 6),
+    "Iran" = list(lat = 32, lon = 53, zoom = 5),
+    "Mexique" = list(lat = 23, lon = -102, zoom = 5),
+    "Suisse" = list(lat = 46, lon = 8, zoom = 6),
+    "Autriche" = list(lat = 47, lon = 13, zoom = 6),
+    "Japon" = list(lat = 36, lon = 138, zoom = 6),
+    "Pérou" = list(lat = -10, lon = -76, zoom = 6),
+    "Russie" = list(lat = 55, lon = 37, zoom = 5),
+    "Pologne" = list(lat = 52, lon = 19, zoom = 6),
+    "Corée du Sud" = list(lat = 37, lon = 127, zoom = 6),
+    "Suède" = list(lat = 60, lon = 18, zoom = 5),
+    "Hongrie" = list(lat = 47, lon = 19, zoom = 6),
+    "Argentine" = list(lat = -34, lon = -64, zoom = 6),
+    "Mozambique" = list(lat = -18, lon = 35, zoom = 6),
+    "Pays-Bas" = list(lat = 52, lon = 5, zoom = 7),
+    "Palestine" = list(lat = 32, lon = 35, zoom = 6),
+    "Colombie" = list(lat = 4, lon = -72, zoom = 6),
+    "Caraïbes" = list(lat = 15, lon = -60, zoom = 5),
+    "Nouvelle-Zélande" = list(lat = -40, lon = 175, zoom = 6),
+    "Cuba" = list(lat = 21, lon = -79, zoom = 6),
+    "Pays de Galles" = list(lat = 53, lon = -4, zoom = 6),
+    "Taïwan" = list(lat = 23, lon = 121, zoom = 8),
+    "Chypre" = list(lat = 35, lon = 33, zoom = 7),
+    "Jordanie" = list(lat = 31, lon = 36, zoom = 6),
+    "Arménie" = list(lat = 40, lon = 45, zoom = 6),
+    "Singapour" = list(lat = 1.3521, lon = 103.8198, zoom = 8),
+    "Tunisie" = list(lat = 33, lon = 9, zoom = 7),
+    "Afrique du Sud" = list(lat = -30, lon = 25, zoom = 5),
+    "Israël" = list(lat = 31.5, lon = 34.75, zoom = 7),
+    "Yémen" = list(lat = 15, lon = 48, zoom = 7),
+    "Danemark" = list(lat = 56, lon = 10, zoom = 6)
   )
   
   
@@ -362,18 +406,35 @@ server <- function(input, output, session){
   
   # Créer un mappage manuel des noms français vers anglais
   country_mapping_fr_to_en <- c(
-    "Inde du Nord" = "India", "Inde" = "India", "Inde du Sud" = "India",
-    "Europe" = "Europe", "Continental" = "Continental Europe", "Moyen-Orient" = "Middle East",
-    "Népal" = "Nepal", "Inde du Nord-Est" = "India", "Thaïlande" = "Thailand", 
-    "Italie" = "Italy", "Chine" = "China", "Méditerranée" = "Mediterranean", 
-    "Asie" = "Asia", "Indonésie" = "Indonesia", "Vietnam" = "Vietnam", 
-    "États-Unis" = "United States of America", "Grèce" = "Greece", "Pakistan" = "Pakistan", 
-    "France" = "France", "Mexique" = "Mexico", "Japon" = "Japan", "Afrique" = "Africa", 
-    "Sri Lanka" = "Sri Lanka", "Suède" = "Sweden", "Afghanistan" = "Afghanistan", 
-    "Inde du Centre" = "India", "Caraïbes" = "Caribbean", "Corée" = "Korea", 
-    "Malaisie" = "Malaysia", "Birmanie" = "Myanmar", "Royaume-Uni" = "United Kingdom", 
-    "Bangladesh" = "Bangladesh", "Singapour" = "Singapore"
+    "Pakistan" = "Pakistan", "Népal" = "Nepal", "Bangladesh" = "Bangladesh", 
+    "Afghanistan" = "Afghanistan", "Sri Lanka" = "Sri Lanka", "Birmanie" = "Myanmar", 
+    "Malaisie" = "Malaysia", "Maurice" = "Mauritius", "Fidji" = "Fiji", 
+    "Inde" = "India", "France" = "France", "États-Unis" = "United States of America", 
+    "Liban" = "Lebanon", "Thaïlande" = "Thailand", "Italie" = "Italy", "Syrie" = "Syria", 
+    "Chine" = "China", "Maroc" = "Morocco", "Grèce" = "Greece", "Indonésie" = "Indonesia", 
+    "Turquie" = "Turkey", "Vietnam" = "Vietnam", "Irlande" = "Ireland", "Canada" = "Canada", 
+    "Égypte" = "Egypt", "Royaume-Uni" = "United Kingdom", "Espagne" = "Spain", "Irak" = "Iraq", 
+    "Allemagne" = "Germany", "Oman" = "Oman", "Cameroun" = "Cameroon", "Iran" = "Iran", 
+    "Mexique" = "Mexico", "Suisse" = "Switzerland", "Autriche" = "Austria", "Japon" = "Japan", 
+    "Pérou" = "Peru", "Russie" = "Russia", "Pologne" = "Poland", "Corée du Sud" = "South Korea", 
+    "Suède" = "Sweden", "Hongrie" = "Hungary", "Argentine" = "Argentina", "Mozambique" = "Mozambique", 
+    "Pays-Bas" = "Netherlands", "Palestine" = "Palestine", "Colombie" = "Colombia", 
+    "Caraïbes" = "Caribbean", "Nouvelle-Zélande" = "New Zealand", "Cuba" = "Cuba", 
+    "Pays de Galles" = "Wales", "Taïwan" = "Taiwan", "Chypre" = "Cyprus", "Jordanie" = "Jordan", 
+    "Arménie" = "Armenia", "Singapour" = "Singapore", "Tunisie" = "Tunisia", 
+    "Afrique du Sud" = "South Africa", "Israël" = "Israel", "Yémen" = "Yemen", "Danemark" = "Denmark"
   )
+  
+  # Filtrer la liste des coordonnées pour ne garder que les pays présents dans la liste
+  region_coords_filtered <- region_coords[names(region_coords) %in% countries_to_keep]
+  
+  # Filtrer la liste des mappings pour ne garder que les pays présents dans la liste
+  country_mapping_fr_to_en_filtered <- country_mapping_fr_to_en[names(country_mapping_fr_to_en) %in% countries_to_keep]
+  
+  # Afficher les résultats
+  region_coords_filtered
+  country_mapping_fr_to_en_filtered
+  
   
   # Appliquer le mappage aux noms des pays dans recette$cuisine
   recette$cuisine_english <- recode(recette$cuisine, !!!country_mapping_fr_to_en)
