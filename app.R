@@ -51,27 +51,27 @@ ui <- fluidPage(
   
   theme = bs_theme(
     bootswatch = "united",
-    base_font = font_google("Lato", wght = 400),  # Police plus moderne et lisible
-    "nav-tabs-link-active-bg" = "#D29B42",  # Brun clair au lieu de marron foncé
+    base_font = font_google("Lato", wght = 400),  # Police moderne et plus sobre
+    "nav-tabs-link-active-bg" = "#D29B42",  # Brun clair pour les onglets actifs
     "nav-tabs-link-active-color" = "white",
-    "nav-pills-link-active-bg" = "#E0B97A",  # Brun un peu plus clair
+    "nav-pills-link-active-bg" = "#E0B97A",  # Brun plus doux pour les sous-onglets
     "nav-pills-link-active-color" = "white"
   ),
   
   useShinyjs(),
   
   tags$style(HTML("
-    /* Garde l'image de fond */
+    /* ====== Image de fond ====== */
     body {
       background-image: url('fond.png') !important;
       background-size: cover !important;
       background-position: center !important;
       background-attachment: fixed !important;
       font-family: 'Lato', sans-serif !important;
-      font-size: 14px !important;  /* Taille de texte plus fine */
+      font-size: 14px !important;
     }
 
-    /* Style de la barre d'onglets */
+    /* ====== Barre d'onglets principale ====== */
     .nav-tabs {
       background-color: rgba(0, 0, 0, 0.1) !important;
       border-radius: 10px !important;
@@ -84,11 +84,10 @@ ui <- fluidPage(
       font-size: 14px !important;
     }
 
-    /* Correction de la couleur des onglets actifs */
     .nav-tabs > li.active > a,
     .nav-tabs > li.active > a:focus,
     .nav-tabs > li.active > a:active {
-      background-color: #A0522D !important; /* Brun plus clair */
+      background-color: #D29B42 !important; /* Brun clair */
       border-radius: 10px !important;
       color: white !important;
     }
@@ -99,7 +98,7 @@ ui <- fluidPage(
       color: white !important;
     }
 
-    /* Style des sous-onglets */
+    /* ====== Style des sous-onglets ====== */
     .nav-pills {
       background-color: rgba(0, 0, 0, 0.2) !important;
       border-radius: 10px !important;
@@ -125,6 +124,27 @@ ui <- fluidPage(
     .nav-pills > li > a:hover {
       background-color: #CD853F !important; /* Brun encore plus clair */
       color: white !important;
+    }
+
+    /* ====== Menu latéral (sidebar) ====== */
+    .sidebar {
+      background-color: #C79A63 !important;  /* Couleur du menu latéral */
+      padding: 15px !important;
+      border-radius: 10px !important;
+      box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2) !important;
+    }
+
+    /* ====== Style des labels et champs de saisie ====== */
+    label {
+      color: black !important;
+      font-weight: bold;
+    }
+
+    input, select, textarea {
+      background-color: white !important;
+      border-radius: 5px !important;
+      border: 1px solid #D29B42 !important;
+      padding: 5px !important;
     }
   ")),
   
