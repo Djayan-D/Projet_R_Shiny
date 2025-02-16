@@ -48,11 +48,90 @@ temps_labels <- c("0 min" = 0, "15 min" = 15, "30 min" = 30, "45 min" = 45,
 #---------- 3. UI ----------
 
 ui <- fluidPage(
-  theme = bslib::bs_theme(
+  
+  theme = bs_theme(
     bootswatch = "united",
-    base_font = "Merriweather",
-    font_scale = 1 ),
+    base_font = font_google("Lato", wght = 400),  # Police plus moderne et lisible
+    "nav-tabs-link-active-bg" = "#A0522D",  # Brun clair au lieu de marron foncé
+    "nav-tabs-link-active-color" = "white",
+    "nav-pills-link-active-bg" = "#D2691E",  # Brun un peu plus clair
+    "nav-pills-link-active-color" = "white"
+  ),
+  
   useShinyjs(),
+  
+  tags$style(HTML("
+    /* Garde l'image de fond */
+    body {
+      background-image: url('fond.png') !important;
+      background-size: cover !important;
+      background-position: center !important;
+      background-attachment: fixed !important;
+      font-family: 'Lato', sans-serif !important;
+      font-size: 14px !important;  /* Taille de texte plus fine */
+    }
+
+    /* Style de la barre d'onglets */
+    .nav-tabs {
+      background-color: rgba(0, 0, 0, 0.1) !important;
+      border-radius: 10px !important;
+      padding: 5px !important;
+    }
+
+    .nav-tabs > li > a {
+      color: white !important;
+      font-weight: bold !important;
+      font-size: 14px !important;
+    }
+
+    /* Correction de la couleur des onglets actifs */
+    .nav-tabs > li.active > a,
+    .nav-tabs > li.active > a:focus,
+    .nav-tabs > li.active > a:active {
+      background-color: #A0522D !important; /* Brun plus clair */
+      border-radius: 10px !important;
+      color: white !important;
+    }
+
+    /* Effet au survol des onglets */
+    .nav-tabs > li > a:hover {
+      background-color: #B87333 !important; /* Brun légèrement doré */
+      color: white !important;
+    }
+
+    /* Style des sous-onglets */
+    .nav-pills {
+      background-color: rgba(0, 0, 0, 0.2) !important;
+      border-radius: 10px !important;
+      padding: 5px !important;
+    }
+
+    .nav-pills > li > a {
+      color: white !important;
+      font-weight: bold !important;
+      font-size: 14px !important;
+    }
+
+    /* Correction de la couleur des sous-onglets actifs */
+    .nav-pills > li.active > a,
+    .nav-pills > li.active > a:focus,
+    .nav-pills > li.active > a:active {
+      background-color: #D2691E !important; /* Brun plus doux */
+      border-radius: 10px !important;
+      color: white !important;
+    }
+
+    /* Effet au survol des sous-onglets */
+    .nav-pills > li > a:hover {
+      background-color: #CD853F !important; /* Brun encore plus clair */
+      color: white !important;
+    }
+  ")),
+  
+  
+  
+  
+  
   
   
   tabsetPanel(
