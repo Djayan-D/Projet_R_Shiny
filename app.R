@@ -238,16 +238,16 @@ ui <- fluidPage(
                         sidebarLayout(
                           sidebarPanel(
                             h4("Sélection d'ingrédients (max 10)"),
-                            textInput("ing1", "Ingrédient 1 :"),
-                            textInput("ing2", "Ingrédient 2 :"),
-                            textInput("ing3", "Ingrédient 3 :"),
-                            textInput("ing4", "Ingrédient 4 :"),
-                            textInput("ing5", "Ingrédient 5 :"),
-                            textInput("ing6", "Ingrédient 6 :"),
-                            textInput("ing7", "Ingrédient 7 :"),
-                            textInput("ing8", "Ingrédient 8 :"),
-                            textInput("ing9", "Ingrédient 9 :"),
-                            textInput("ing10", "Ingrédient 10 :"),
+                            textInput("ing21", "Ingrédient 1 :"),
+                            textInput("ing22", "Ingrédient 2 :"),
+                            textInput("ing23", "Ingrédient 3 :"),
+                            textInput("ing24", "Ingrédient 4 :"),
+                            textInput("ing25", "Ingrédient 5 :"),
+                            textInput("ing26", "Ingrédient 6 :"),
+                            textInput("ing27", "Ingrédient 7 :"),
+                            textInput("ing28", "Ingrédient 8 :"),
+                            textInput("ing29", "Ingrédient 9 :"),
+                            textInput("ing210", "Ingrédient 10 :"),
                             actionButton("search_by_ingredients", "Rechercher")
                           ),
                           mainPanel(
@@ -722,8 +722,8 @@ server <- function(input, output, session){
   recettes_found_ingredients <- reactiveVal(data.frame())
   
   observeEvent(input$search_by_ingredients, {
-    ingredients <- c(input$ing1, input$ing2, input$ing3, input$ing4, input$ing5,
-                     input$ing6, input$ing7, input$ing8, input$ing9, input$ing10)
+    ingredients <- c(input$ing21, input$ing22, input$ing23, input$ing24, input$ing25,
+                     input$ing26, input$ing27, input$ing28, input$ing29, input$ing210)
     ingredients <- tolower(trimws(ingredients))
     ingredients <- ingredients[ingredients != ""]
     
