@@ -152,7 +152,7 @@ ui <- fluidPage(
 
 
     # ----- PRESENTATION -----
-    tabPanel("Nom du site", HTML(
+    tabPanel("Accueil", HTML(
       "<div style='text-align: center;'>
              Bienvenu sur ... !<br><br>
              Notre site contient actuellement plus de 7000 recettes provenant de plus de ... de pays différents.<br><br>
@@ -171,7 +171,7 @@ ui <- fluidPage(
 
     # ----- RECHERCHE PAR CARACTERISTIQUES -----
     tabPanel(
-      "Recherche selon caractéristiques",
+      "Recherche par caractéristiques",
       tabsetPanel(
         id = "carac_tabs",
         tabPanel(
@@ -206,15 +206,15 @@ ui <- fluidPage(
 
     # ----- RECHERCHE PAR CARTE -----
     tabPanel(
-      "Recherche par carte",
+      "Recherche par pays",
       tabsetPanel(
         id = "carte_tabs",
         tabPanel(
           "Carte",
           sidebarLayout(
             sidebarPanel(
-              h4("Choix de la région"),
-              selectInput("region_select", "Sélectionnez une région :",
+              h4("Choix du pays"),
+              selectInput("region_select", "Sélectionnez un pays :",
                 choices = c("Neutre", unique(na.omit(recette$cuisine))),
                 selected = "Neutre"
               ),
