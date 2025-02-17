@@ -59,90 +59,222 @@ ui <- fluidPage(
   useShinyjs(),
   tags$style(HTML("
     /* ====== Image de fond ====== */
-    body {
-      background-image: url('fond2.png') !important;
-      background-size: cover !important;
-      background-position: center !important;
-      background-attachment: fixed !important;
-      font-family: 'Lato', sans-serif !important;
-      font-size: 14px !important;
-    }
+    /* ====== Image de fond ====== */
+body {
+  background-image: url('fond2.png') !important;
+  background-size: cover !important;
+  background-position: center !important;
+  background-attachment: fixed !important;
+  font-family: 'Lato', sans-serif !important;
+  font-size: 15px !important;
+  color: #333 !important;
+}
 
-    /* ====== Barre d'onglets principale ====== */
-    .nav-tabs {
-      background-color: rgba(0, 0, 0, 0.1) !important;
-      border-radius: 10px !important;
-      padding: 5px !important;
-    }
+/* ====== Barre d'onglets principale ====== */
+.nav-tabs {
+  background-color: rgba(255, 255, 255, 0.8) !important;
+  border-radius: 10px !important;
+  padding: 5px !important;
+}
 
-    .nav-tabs > li > a {
-      color: white !important;
-      font-weight: bold !important;
-      font-size: 14px !important;
-    }
+.nav-tabs > li > a {
+  color: #5A3E1B !important;
+  font-weight: bold !important;
+  font-size: 14px !important;
+  transition: all 0.3s ease-in-out;
+}
 
-    .nav-tabs > li.active > a,
-    .nav-tabs > li.active > a:focus,
-    .nav-tabs > li.active > a:active {
-      background-color: #D29B42 !important; /* Brun clair */
-      border-radius: 10px !important;
-      color: white !important;
-    }
+.nav-tabs > li.active > a,
+.nav-tabs > li.active > a:focus,
+.nav-tabs > li.active > a:active {
+  background-color: #D29B42 !important;
+  border-radius: 10px !important;
+  color: white !important;
+}
 
-    /* Effet au survol des onglets */
-    .nav-tabs > li > a:hover {
-      background-color: #B87333 !important; /* Brun légèrement doré */
-      color: white !important;
-    }
+.nav-tabs > li > a:hover {
+  background-color: #B87333 !important;
+  color: white !important;
+}
 
-    /* ====== Style des sous-onglets ====== */
-    .nav-pills {
-      background-color: rgba(0, 0, 0, 0.2) !important;
-      border-radius: 10px !important;
-      padding: 5px !important;
-    }
+/* ====== Style des sous-onglets ====== */
+.nav-pills {
+  background-color: rgba(255, 255, 255, 0.8) !important;
+  border-radius: 10px !important;
+  padding: 5px !important;
+}
 
-    .nav-pills > li > a {
-      color: white !important;
-      font-weight: bold !important;
-      font-size: 14px !important;
-    }
+.nav-pills > li > a {
+  color: #5A3E1B !important;
+  font-weight: bold !important;
+  font-size: 14px !important;
+}
 
-    /* Correction de la couleur des sous-onglets actifs */
-    .nav-pills > li.active > a,
-    .nav-pills > li.active > a:focus,
-    .nav-pills > li.active > a:active {
-      background-color: #D2691E !important; /* Brun plus doux */
-      border-radius: 10px !important;
-      color: white !important;
-    }
+.nav-pills > li.active > a,
+.nav-pills > li.active > a:focus,
+.nav-pills > li.active > a:active {
+  background-color: #D2691E !important;
+  border-radius: 10px !important;
+  color: white !important;
+}
 
-    /* Effet au survol des sous-onglets */
-    .nav-pills > li > a:hover {
-      background-color: #CD853F !important; /* Brun encore plus clair */
-      color: white !important;
-    }
+.nav-pills > li > a:hover {
+  background-color: #CD853F !important;
+  color: white !important;
+}
 
-    /* ====== Menu latéral (sidebar) ====== */
-    .sidebar {
-      background-color: #C79A63 !important;  /* Couleur du menu latéral */
-      padding: 15px !important;
-      border-radius: 10px !important;
-      box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2) !important;
-    }
+/* ====== Amélioration de la sidebar ====== */
+.sidebar {
+  background-color: rgba(75, 40, 20, 0.95) !important; /* Brun très foncé avec opacité quasi totale */
+  padding: 15px !important;
+  border-radius: 12px !important;
+  box-shadow: 6px 6px 15px rgba(0, 0, 0, 0.6) !important; /* Ombre plus prononcée */
+  border: 3px solid #D29B42 !important; /* Bordure dorée plus épaisse */
+}
 
-    /* ====== Style des labels et champs de saisie ====== */
-    label {
-      color: black !important;
-      font-weight: bold;
-    }
+/* Style des titres et labels */
+.sidebar h3, .sidebar label {
+  color: #FFD700 !important; /* Texte doré pour bien ressortir */
+  font-weight: bold !important;
+}
 
-    input, select, textarea {
-      background-color: white !important;
-      border-radius: 5px !important;
-      border: 1px solid #D29B42 !important;
-      padding: 5px !important;
-    }
+/* Style des liens */
+.sidebar .nav > li > a {
+  color: white !important;
+  font-weight: bold !important;
+  font-size: 16px !important;
+  padding: 12px !important;
+  transition: all 0.3s ease-in-out;
+}
+
+/* Couleur active du lien */
+.sidebar .nav > li.active > a {
+  background-color: #D29B42 !important;
+  color: white !important;
+  border-radius: 8px !important;
+}
+
+/* Effet au survol */
+.sidebar .nav > li > a:hover {
+  background-color: #B87333 !important;
+  color: white !important;
+  border-radius: 8px !important;
+}
+
+/* ====== Tableaux ====== */
+table.dataTable {
+  background-color: rgba(255, 255, 255, 0.9) !important;
+  border-radius: 10px !important;
+  box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1) !important;
+  overflow: hidden;
+}
+
+table.dataTable th {
+  background-color: #D29B42 !important;
+  color: white !important;
+  font-weight: bold !important;
+}
+
+table.dataTable td {
+  color: #333 !important;
+  padding: 10px !important;
+}
+
+/* ====== Champs de saisie ====== */
+label {
+  color: black !important;
+  font-weight: bold;
+}
+
+input, select, textarea {
+  background-color: white !important;
+  border-radius: 8px !important;
+  border: 1px solid #DEE2E6 !important;
+  padding: 8px !important;
+  font-size: 14px !important;
+  transition: border-color 0.3s ease-in-out;
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: #D29B42 !important;
+  outline: none !important;
+  box-shadow: 0 0 5px rgba(210, 155, 66, 0.5) !important;
+}
+
+/* ====== Boutons ====== */
+button {
+  background-color: #D29B42 !important;
+  color: white !important;
+  font-weight: bold !important;
+  padding: 10px 15px !important;
+  border-radius: 8px !important;
+  border: none !important;
+  transition: background-color 0.3s ease-in-out;
+}
+
+button:hover {
+  background-color: #B87333 !important;
+  cursor: pointer !important;
+}
+
+/* ====== Amélioration de la section de filtrage ====== */
+.filtrage-container {
+  background-color: #8B5A2B !important; /* Brun foncé opaque */
+  padding: 20px !important;
+  border-radius: 12px !important;
+  box-shadow: 8px 8px 20px rgba(0, 0, 0, 0.7) !important; /* Ombre plus marquée */
+  border: 4px solid #D29B42 !important; /* Bordure dorée */
+  width: 350px !important;
+  color: white !important;
+}
+
+.filtrage-container h3, 
+.filtrage-container label {
+  color: #FFD700 !important; /* Texte doré */
+  font-weight: bold !important;
+  font-size: 1.2em !important;
+}
+
+.filtrage-container input, 
+.filtrage-container select {
+  background-color: white !important;
+  color: #333 !important;
+  border: 2px solid #D29B42 !important;
+  padding: 10px !important;
+  border-radius: 6px !important;
+  width: 100% !important;
+  font-size: 1em !important;
+}
+
+.filtrage-container button {
+  background-color: #D29B42 !important;
+  color: white !important;
+  font-weight: bold !important;
+  padding: 12px !important;
+  border-radius: 8px !important;
+  width: 100% !important;
+  font-size: 1.1em !important;
+  transition: all 0.3s ease-in-out !important;
+}
+
+.filtrage-container button:hover {
+  background-color: #B87333 !important;
+  transform: scale(1.05) !important;
+}
+
+/* ====== Optimisation pour mobile ====== */
+@media screen and (max-width: 768px) {
+  .main-container {
+    flex-direction: column !important;
+    align-items: center !important;
+  }
+
+  .filtrage-container {
+    width: 100% !important;
+    padding: 15px !important;
+  }
+}
+
   ")),
   tabsetPanel(
     id = "onglet",
