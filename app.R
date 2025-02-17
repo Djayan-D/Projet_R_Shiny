@@ -61,7 +61,7 @@ ui <- fluidPage(
   tags$style(HTML("
     /* ====== Image de fond ====== */
     body {
-      background-image: url('fond.png') !important;
+      background-image: url('fond2.png') !important;
       background-size: cover !important;
       background-position: center !important;
       background-attachment: fixed !important;
