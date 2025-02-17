@@ -948,18 +948,25 @@ server <- function(input, output, session) {
     new_recipe <- selected_recipe()
     new_recipe <- new_recipe[, !colnames(new_recipe) %in% c("name_lower", "ingr_lower", "score")]
     current_fav <- favorites()
-    if (nrow(current_fav) == 0) {
-      favorites(new_recipe)
+    if (nrow(current_fav) > 0 && new_recipe$name %in% current_fav$name) {
+      # Supprimer la recette des favoris
+      updated_fav <- current_fav[current_fav$name != new_recipe$name, ]
+      favorites(updated_fav)
+      shinyjs::runjs("$('#add_to_fav_carac').css('color', 'grey');")
+      showNotification("Recette retirée des favoris", type = "warning")
     } else {
-      all_columns <- union(colnames(current_fav), colnames(new_recipe))
-      new_recipe <- new_recipe[, all_columns, drop = FALSE]
-      current_fav <- current_fav[, all_columns, drop = FALSE]
-      if (!(new_recipe$name %in% current_fav$name)) {
+      # Ajouter la recette aux favoris
+      if (nrow(current_fav) == 0) {
+        favorites(new_recipe)
+      } else {
+        all_columns <- union(colnames(current_fav), colnames(new_recipe))
+        new_recipe <- new_recipe[, all_columns, drop = FALSE]
+        current_fav <- current_fav[, all_columns, drop = FALSE]
         favorites(rbind(current_fav, new_recipe))
       }
+      shinyjs::runjs("$('#add_to_fav_carac').css('color', 'red');")
+      showNotification("Recette ajoutée aux favoris", type = "message")
     }
-    shinyjs::runjs("$('#add_to_fav_carac').css('color', 'red');")
-    showNotification("Recette ajoutée aux favoris", type = "message")
   })
 
   observeEvent(input$add_to_fav_carte, {
@@ -968,19 +975,25 @@ server <- function(input, output, session) {
     new_recipe <- new_recipe[, !colnames(new_recipe) %in% c("name_lower", "ingr_lower", "score")]
     current_fav <- favorites()
 
-    if (nrow(current_fav) == 0) {
-      favorites(new_recipe)
+    if (nrow(current_fav) > 0 && new_recipe$name %in% current_fav$name) {
+      # Supprimer la recette des favoris
+      updated_fav <- current_fav[current_fav$name != new_recipe$name, ]
+      favorites(updated_fav)
+      shinyjs::runjs("$('#add_to_fav_carte').css('color', 'grey');")
+      showNotification("Recette retirée des favoris", type = "warning")
     } else {
-      all_columns <- union(colnames(current_fav), colnames(new_recipe))
-      new_recipe <- new_recipe[, all_columns, drop = FALSE]
-      current_fav <- current_fav[, all_columns, drop = FALSE]
-
-      if (!(new_recipe$name %in% current_fav$name)) {
+      # Ajouter la recette aux favoris
+      if (nrow(current_fav) == 0) {
+        favorites(new_recipe)
+      } else {
+        all_columns <- union(colnames(current_fav), colnames(new_recipe))
+        new_recipe <- new_recipe[, all_columns, drop = FALSE]
+        current_fav <- current_fav[, all_columns, drop = FALSE]
         favorites(rbind(current_fav, new_recipe))
       }
+      shinyjs::runjs("$('#add_to_fav_carte').css('color', 'red');")
+      showNotification("Recette ajoutée aux favoris", type = "message")
     }
-    shinyjs::runjs("$('#add_to_fav_carte').css('color', 'red');")
-    showNotification("Recette ajoutée aux favoris", type = "message")
   })
 
   observeEvent(input$add_to_fav_placard, {
@@ -988,18 +1001,25 @@ server <- function(input, output, session) {
     new_recipe <- selected_recipe()
     new_recipe <- new_recipe[, !colnames(new_recipe) %in% c("name_lower", "ingr_lower", "score")]
     current_fav <- favorites()
-    if (nrow(current_fav) == 0) {
-      favorites(new_recipe)
+    if (nrow(current_fav) > 0 && new_recipe$name %in% current_fav$name) {
+      # Supprimer la recette des favoris
+      updated_fav <- current_fav[current_fav$name != new_recipe$name, ]
+      favorites(updated_fav)
+      shinyjs::runjs("$('#add_to_fav_placard').css('color', 'grey');")
+      showNotification("Recette retirée des favoris", type = "warning")
     } else {
-      all_columns <- union(colnames(current_fav), colnames(new_recipe))
-      new_recipe <- new_recipe[, all_columns, drop = FALSE]
-      current_fav <- current_fav[, all_columns, drop = FALSE]
-      if (!(new_recipe$name %in% current_fav$name)) {
+      # Ajouter la recette aux favoris
+      if (nrow(current_fav) == 0) {
+        favorites(new_recipe)
+      } else {
+        all_columns <- union(colnames(current_fav), colnames(new_recipe))
+        new_recipe <- new_recipe[, all_columns, drop = FALSE]
+        current_fav <- current_fav[, all_columns, drop = FALSE]
         favorites(rbind(current_fav, new_recipe))
       }
+      shinyjs::runjs("$('#add_to_fav_placard').css('color', 'red');")
+      showNotification("Recette ajoutée aux favoris", type = "message")
     }
-    shinyjs::runjs("$('#add_to_fav_placard').css('color', 'red');")
-    showNotification("Recette ajoutée aux favoris", type = "message")
   })
 
 
@@ -1008,18 +1028,25 @@ server <- function(input, output, session) {
     new_recipe <- selected_recipe()
     new_recipe <- new_recipe[, !colnames(new_recipe) %in% c("name_lower", "ingr_lower", "score")]
     current_fav <- favorites()
-    if (nrow(current_fav) == 0) {
-      favorites(new_recipe)
+    if (nrow(current_fav) > 0 && new_recipe$name %in% current_fav$name) {
+      # Supprimer la recette des favoris
+      updated_fav <- current_fav[current_fav$name != new_recipe$name, ]
+      favorites(updated_fav)
+      shinyjs::runjs("$('#add_to_fav_barre').css('color', 'grey');")
+      showNotification("Recette retirée des favoris", type = "warning")
     } else {
-      all_columns <- union(colnames(current_fav), colnames(new_recipe))
-      new_recipe <- new_recipe[, all_columns, drop = FALSE]
-      current_fav <- current_fav[, all_columns, drop = FALSE]
-      if (!(new_recipe$name %in% current_fav$name)) {
+      # Ajouter la recette aux favoris
+      if (nrow(current_fav) == 0) {
+        favorites(new_recipe)
+      } else {
+        all_columns <- union(colnames(current_fav), colnames(new_recipe))
+        new_recipe <- new_recipe[, all_columns, drop = FALSE]
+        current_fav <- current_fav[, all_columns, drop = FALSE]
         favorites(rbind(current_fav, new_recipe))
       }
+      shinyjs::runjs("$('#add_to_fav_barre').css('color', 'red');")
+      showNotification("Recette ajoutée aux favoris", type = "message")
     }
-    shinyjs::runjs("$('#add_to_fav_barre').css('color', 'red');")
-    showNotification("Recette ajoutée aux favoris", type = "message")
   })
 
   output$fav_table <- renderDT({
