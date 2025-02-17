@@ -44,7 +44,6 @@ temps_labels <- c(
   "1h" = 60, "1h15" = 75, "1h30" = 90, "1h45" = 105, "2h ou plus" = 120
 )
 
-recette$course[is.na(recette$course)] <- "Déjeuner"
 
 #---------- 3. UI ----------
 
