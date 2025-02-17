@@ -44,9 +44,7 @@ temps_labels <- c(
   "1h" = 60, "1h15" = 75, "1h30" = 90, "1h45" = 105, "2h ou plus" = 120
 )
 
-
-
-
+recette$course[is.na(recette$course)] <- "Déjeuner"
 
 #---------- 3. UI ----------
 
@@ -154,8 +152,8 @@ ui <- fluidPage(
     # ----- PRESENTATION -----
     tabPanel("Accueil", HTML(
       "<div style='text-align: center;'>
-             Bienvenu sur ... !<br><br>
-             Notre site contient actuellement plus de 7000 recettes provenant de plus de ... de pays différents.<br><br>
+             Bienvenu sur the CookingLab !<br><br>
+             Notre site contient actuellement plus de 7000 recettes provenant de plus de 61 pays différents.<br><br>
              En espérant que vous trouverez de quoi vous régaler !<br><br><br><br>mettre logo<br><br><br><br><br>
              <span style='font-size:12px;'>
              Depuis février 2025.<br>
@@ -180,6 +178,10 @@ ui <- fluidPage(
             sidebarPanel(
               h4("Choix du régime"),
               selectInput("diet", "Régime alimentaire :", choices = regimes_disponibles, selected = "None"),
+              h4("Choix du repas"),
+              selectInput("meal_type", "Type de repas :", 
+                          choices = c("Tout sélectionner", unique(na.omit(recette$course))), 
+                          selected = "Tout sélectionner"),
               h4("Ingrédients souhaités"),
               textInput("ing1", "Ingrédient 1"),
               textInput("ing2", "Ingrédient 2"),
@@ -340,6 +342,7 @@ server <- function(input, output, session) {
     if (length(label) > 0) label else "Inconnu"
   })
 
+  
   observeEvent(input$search, {
     ingredients <- c(input$ing1, input$ing2, input$ing3) |>
       tolower() |>
@@ -350,6 +353,7 @@ server <- function(input, output, session) {
     allergenes <- allergenes[allergenes != ""]
     diet_selected <- input$diet
     max_prep <- temps_labels[input$max_prep_time]
+    meal_selected <- input$meal_type
     recettes_filtrees_data <- recette
 
     if (length(ingredients) > 0) {
@@ -368,6 +372,10 @@ server <- function(input, output, session) {
 
     if (!is.null(max_prep) && !is.na(max_prep)) {
       recettes_filtrees_data <- recettes_filtrees_data |> filter(total_time <= max_prep)
+    }
+    
+    if (meal_selected != "Tout sélectionner") {
+      recettes_filtrees_data <- recettes_filtrees_data |> filter(course == meal_selected)
     }
 
     recettes_filtrees(recettes_filtrees_data)
