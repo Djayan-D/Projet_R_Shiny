@@ -1,0 +1,29 @@
+---
+title: "Recette : `r params$nom`"
+output: pdf_document
+params:
+  nom: "Nom de la recette"
+  regime: "Type de régime"
+  prep_time: "Temps de préparation"
+  cook_time: "Temps de cuisson"
+  ingredients: "Liste des ingrédients"
+  instructions: "Instructions"
+  image_path: "Chemin local de l'image"
+---
+
+# `r params$nom`
+
+```{r, echo=FALSE, fig.align='center', out.width="70%"}
+knitr::include_graphics(params$image_path)
+```
+
+- **Régime alimentaire** : `r params$regime`
+- **Temps de préparation** : `r params$prep_time` min
+- **Temps de cuisson** : `r params$cook_time` min
+
+## Ingrédients
+`r params$ingredients`
+
+## Instructions
+`r params$instructions`
+

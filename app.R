@@ -13,6 +13,10 @@ library(knitr)
 library(htmltools)
 library(webshot)
 library(styler)
+library(rmarkdown)
+library(tinytex)
+library(knitr)
+
 
 
 #----- Isaline -----
@@ -673,8 +677,10 @@ server <- function(input, output, session) {
         style = "border: 2px solid #ccc; padding: 15px; margin-bottom: 20px; background-color: #f9f9f9; position: relative;",
         actionButton("add_to_fav_carac", " Favoris ",
           icon = icon("heart"),
-          style = "position: absolute; top: 5px; right: 50px; background: none; border: none; font-size: 18px; color: grey; cursor: pointer;"
+          style = "position: absolute; top: 5px; right: 62px; background: none; border: none; font-size: 18px; color: grey; cursor: pointer;"
         ),
+        downloadButton("download_recipe", shiny::HTML("<span style='font-weight: bold;'>Télécharger en PDF</span>"),
+                       style = "position: absolute; top: 5px; right: 180px; width: 200px; height: 47px; background: #D29B42; color: white; padding: 8px 12px; border-radius: 8px; border: none; font-size: 18px; cursor: pointer; text-align: center;"),
         actionButton("close_recipe", "✖",
           style = "position: absolute; top: 5px; right: 10px; background: none; border: none; font-size: 18px; color: red; cursor: pointer;"
         ),
@@ -939,11 +945,10 @@ server <- function(input, output, session) {
         style = "border: 2px solid #ccc; padding: 15px; margin-bottom: 20px; background-color: #f9f9f9; position: relative;",
         actionButton("add_to_fav_carte", " Favoris ",
           icon = icon("heart"),
-          style = "position: absolute; top: 5px; right: 50px; background: none; border: none; font-size: 18px; color: grey; cursor: pointer;"
+          style = "position: absolute; top: 5px; right: 62px; background: none; border: none; font-size: 18px; color: grey; cursor: pointer;"
         ),
-        downloadButton("download_recipe", "",
-          style = "position: absolute; top: 5px; right: 100px; background: none; border: 1px solid #007bff; font-size: 14px; color: #007bff; cursor: pointer;"
-        ),
+        downloadButton("download_recipe", shiny::HTML("<span style='font-weight: bold;'>Télécharger en PDF</span>"),
+                       style = "position: absolute; top: 5px; right: 180px; width: 200px; height: 47px; background: #D29B42; color: white; padding: 8px 12px; border-radius: 8px; border: none; font-size: 18px; cursor: pointer; text-align: center;"),
         actionButton("close_recipe_carte", "✖",
           style = "position: absolute; top: 5px; right: 10px; background: none; border: none; font-size: 18px; color: red; cursor: pointer;"
         ),
@@ -974,38 +979,40 @@ server <- function(input, output, session) {
   # ---- Générer le fichier de la recette pour le téléchargement ----
   output$download_recipe <- downloadHandler(
     filename = function() {
-      paste0(selected_recipe()$name, "_recette.txt")
+      paste0(gsub(" ", "_", selected_recipe()$name), "_recette.pdf")
     },
     content = function(file) {
       recipe <- selected_recipe()
-
-      # Créer le contenu de la recette
-      content <- paste0(
-        "Nom de la recette : ", recipe$name, "\n\n",
-        "Régime : ", recipe$diet, "\n",
-        "Temps de préparation : ", recipe$prep_time, " min\n",
-        "Temps de cuisson : ", recipe$cook_time, " min\n\n",
-        "Ingrédients :\n"
+      
+      # Télécharger l'image localement
+      image_path <- tempfile(fileext = ".jpg")  # Créer un fichier temporaire pour l’image
+      tryCatch({
+        download.file(recipe$image_url, image_path, mode = "wb")
+      }, error = function(e) {
+        image_path <- "placeholder.jpg"  # Image par défaut si l’image ne peut pas être téléchargée
+      })
+      
+      # Créer une liste de paramètres pour R Markdown
+      params <- list(
+        nom = recipe$name,
+        regime = recipe$diet,
+        prep_time = recipe$prep_time,
+        cook_time = recipe$cook_time,
+        ingredients = paste0("- ", strsplit(recipe$ingr_name, ",")[[1]], collapse = "\n"),
+        instructions = recipe$instructions,
+        image_path = image_path  # On passe le chemin du fichier téléchargé
       )
-
-      # Ajouter les ingrédients
-      ingredients_list <- strsplit(recipe$ingr_name, ",")[[1]]
-      quantities_list <- strsplit(recipe$ingr_qt, ",")[[1]]
-
-      for (i in seq_along(ingredients_list)) {
-        if (is.na(quantities_list[i]) || quantities_list[i] == "") {
-          content <- paste0(content, "- ", ingredients_list[i], "\n")
-        } else {
-          content <- paste0(content, "- ", ingredients_list[i], " - ", quantities_list[i], "\n")
-        }
-      }
-
-      content <- paste0(content, "\nInstructions :\n", recipe$instructions)
-
-      # Écrire dans le fichier
-      writeLines(content, con = file)
+      
+      # Générer le PDF avec rmarkdown::render
+      rmarkdown::render("recette_template.Rmd",
+                        output_format = "pdf_document",
+                        output_file = file,
+                        params = params,
+                        envir = new.env(parent = globalenv()))
     }
   )
+  
+  
 
   # ---- Fermeture de la carte de recette ----
   observeEvent(input$close_recipe_carte, {
@@ -1072,8 +1079,10 @@ server <- function(input, output, session) {
         style = "border: 2px solid #ccc; padding: 15px; margin-bottom: 20px; background-color: #f9f9f9; position: relative;",
         actionButton("add_to_fav_placard", " Favoris ",
           icon = icon("heart"),
-          style = "position: absolute; top: 5px; right: 50px; background: none; border: none; font-size: 18px; color: grey; cursor: pointer;"
+          style = "position: absolute; top: 5px; right: 62px; background: none; border: none; font-size: 18px; color: grey; cursor: pointer;"
         ),
+        downloadButton("download_recipe", shiny::HTML("<span style='font-weight: bold;'>Télécharger en PDF</span>"),
+                       style = "position: absolute; top: 5px; right: 180px; width: 200px; height: 47px; background: #D29B42; color: white; padding: 8px 12px; border-radius: 8px; border: none; font-size: 18px; cursor: pointer; text-align: center;"),
         actionButton("close_recipe_placard", "✖",
           style = "position: absolute; top: 5px; right: 10px; background: none; border: none; font-size: 18px; color: red; cursor: pointer;"
         ),
@@ -1155,8 +1164,10 @@ server <- function(input, output, session) {
         style = "border: 2px solid #ccc; padding: 15px; margin-bottom: 20px; background-color: #f9f9f9; position: relative;",
         actionButton("add_to_fav_barre", " Favoris ",
           icon = icon("heart"),
-          style = "position: absolute; top: 5px; right: 50px; background: none; border: none; font-size: 18px; color: grey; cursor: pointer;"
+          style = "position: absolute; top: 5px; right: 62px; background: none; border: none; font-size: 18px; color: grey; cursor: pointer;"
         ),
+        downloadButton("download_recipe", shiny::HTML("<span style='font-weight: bold;'>Télécharger en PDF</span>"),
+                       style = "position: absolute; top: 5px; right: 180px; width: 200px; height: 47px; background: #D29B42; color: white; padding: 8px 12px; border-radius: 8px; border: none; font-size: 18px; cursor: pointer; text-align: center;"),
         actionButton("close_recipe_barre", "✖",
           style = "position: absolute; top: 5px; right: 10px; background: none; border: none; font-size: 18px; color: red; cursor: pointer;"
         ),
@@ -1329,8 +1340,10 @@ server <- function(input, output, session) {
         style = "border: 2px solid #ccc; padding: 15px; margin-bottom: 20px; background-color: #f9f9f9; position: relative;",
         actionButton("add_to_fav_barre", " Favoris ",
           icon = icon("heart"),
-          style = "position: absolute; top: 5px; right: 50px; background: none; border: none; font-size: 18px; color: red; cursor: pointer;"
+          style = "position: absolute; top: 5px; right: 62px; background: none; border: none; font-size: 18px; color: red; cursor: pointer;"
         ),
+        downloadButton("download_recipe", shiny::HTML("<span style='font-weight: bold;'>Télécharger en PDF</span>"),
+                       style = "position: absolute; top: 5px; right: 180px; width: 200px; height: 47px; background: #D29B42; color: white; padding: 8px 12px; border-radius: 8px; border: none; font-size: 18px; cursor: pointer; text-align: center;"),
         actionButton("close_recipe_fav", "✖",
           style = "position: absolute; top: 5px; right: 10px; background: none; border: none; font-size: 18px; color: red; cursor: pointer;"
         ),
