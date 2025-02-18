@@ -313,22 +313,65 @@ button:hover {
     id = "onglet",
 
 
-    # ----- PRESENTATION -----
-    tabPanel("Accueil", HTML(
-      "<div style='text-align: center;'>
-             Bienvenu sur the CookingLab !<br><br>
-             Notre site contient actuellement plus de 7000 recettes provenant de plus de 61 pays différents.<br><br>
-             En espérant que vous trouverez de quoi vous régaler !<br><br><br><br>mettre logo<br><br><br><br><br>
-             <span style='font-size:12px;'>
-             Depuis février 2025.<br>
-             Cette application a été créée dans le cadre du cours Dataviz : RShiny du Master 1 ECAP.<br>
-             En cas de questions, n'hésitez pas à contacter Isaline HERVE ou Djayan DAERON :<br>
-             isalineherve@gmail.com<br>
-             daeron.djayan@gmail.com
-             </span>
-             </div>
-             "
-    )),
+    tabPanel("Accueil", 
+             fluidPage(
+               HTML("
+               <div style='position: relative; text-align: center; padding-top: 50px;'>
+                 <div style='background: rgba(255, 255, 255, 0.85); padding: 30px; border-radius: 15px; display: inline-block; max-width: 800px;'>
+                     <img src='logo.png' alt='Logo The Cooking Lab' style='width: 150px; display: block; margin: 0 auto 20px; opacity: 0;
+                         animation: fadeInZoom 2.5s ease-in-out forwards;'>
+                     
+                     <h1 style='color: #D29B42; font-weight: bold; font-size: 36px; 
+                         animation: fadeIn 2s ease-in-out;'>Bienvenue sur <span style='color: #8B5A2B;'>The Cooking Lab</span> !</h1>
+                     <h3 style='color: #5A3E1B; font-style: italic; margin-top: 10px;
+                         animation: fadeIn 3s ease-in-out;'>Recettes inspirées, cuisine optimisée</h3>
+                     
+                     <p style='font-size: 18px; color: #333; max-width: 700px; margin: auto;
+                        animation: fadeIn 3s ease-in-out;'>
+                       Notre site contient actuellement plus de <strong>7000 recettes</strong> provenant de 
+                       <strong>61 pays</strong> différents. <br><br>
+                       En espérant que vous trouverez de quoi vous régaler !
+                     </p>
+                 </div>
+               </div>
+             "),
+               # Le bouton actionButton doit être défini en dehors du HTML
+               actionButton("btn_explore", "Démarrer", class = "btn-explore")
+             ),
+             # Style CSS
+             tags$style(HTML("
+             @keyframes fadeIn {
+               from { opacity: 0; transform: translateY(-10px); }
+               to { opacity: 1; transform: translateY(0); }
+             }
+
+             @keyframes fadeInZoom {
+               from { opacity: 0; transform: scale(0.8); }
+               to { opacity: 1; transform: scale(1); }
+             }
+
+             .btn-explore {
+               display: inline-block;
+               background-color: #D29B42;
+               color: white;
+               font-size: 18px;
+               font-weight: bold;
+               padding: 12px 25px;
+               border-radius: 8px;
+               text-decoration: none;
+               transition: all 0.3s ease-in-out;
+             }
+
+             .btn-explore:hover {
+               background-color: #B87333;
+               transform: scale(1.05);
+             }
+           "))
+    ),
+    
+    
+    
+    
 
 
     # ----- RECHERCHE PAR CARACTERISTIQUES -----
@@ -483,11 +526,11 @@ button:hover {
     ),
     
     
-    tabPanel("?", HTML("
+    tabPanel("À propos", HTML("
   <div class='about-container'>
-    <h2>À propos de The CookingLab</h2>
+    <h2>À propos de The Cooking Lab</h2>
     <p>
-      The CookingLab, c'est une collection de <strong>plus de 7000 recettes</strong> issues de <strong>61 pays différents</strong>. <br>
+      The Cooking Lab, c'est une collection de <strong>plus de 7000 recettes</strong> issues de <strong>61 pays différents</strong>. <br>
       Nous espérons que vous y trouverez de quoi éveiller vos papilles !
     </p>
     <img src='logo.png' alt='Logo The CookingLab'>
@@ -513,7 +556,20 @@ button:hover {
 server <- function(input, output, session) {
   favorites <- reactiveVal(recette[0, ])
 
-  #----- PRESENTATION -----
+  observeEvent(input$btn_explore, {
+    updateTabsetPanel(session, "onglet", selected = "Recherche par caractéristiques")
+  })
+  
+  
+  observeEvent(input$btn_explore, {
+    selected_row <- input$recette_table_rows_selected
+    if (length(selected_row) > 0) {
+      selected_recipe(recettes_filtrees()[selected_row, ])
+      updateTabsetPanel(session, "carac_tabs", selected = "Recette")
+    }
+  })
+  
+  
 
 
   #----- RECHERCHE CARACTERISTIQUES -----
