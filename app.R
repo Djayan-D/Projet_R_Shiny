@@ -538,8 +538,7 @@ button:hover {
   <div class='about-container'>
     <h2>À propos de The Cooking Lab</h2>
     <p>
-      The Cooking Lab, c'est une collection de <strong>plus de 7000 recettes</strong> issues de <strong>61 pays différents</strong>. <br>
-      Nous espérons que vous y trouverez de quoi éveiller vos papilles !
+      The Cooking Lab, c'est une collection de <strong>plus de 7000 recettes</strong> issues de <strong>61 pays différents</strong>.
     </p>
     <img src='logo.png' alt='Logo The CookingLab'>
     <p class='contact-info'>
