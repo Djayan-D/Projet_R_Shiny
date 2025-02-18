@@ -27,3 +27,11 @@ knitr::include_graphics(params$image_path)
 ## Instructions
 `r params$instructions`
 
+---
+
+Crédits : **The Cooking Lab**
+
+```{r, echo=FALSE, fig.align='center', out.width="20%"}
+knitr::include_graphics("www/logo2.png")
+```
+
