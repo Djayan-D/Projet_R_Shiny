@@ -275,7 +275,40 @@ button:hover {
   }
 }
 
-  ")),
+/* ====== Style de la section 'À propos' ====== */
+  .about-container {
+    max-width: 800px;
+    margin: auto;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 4px 4px 12px rgba(0, 0, 0, 0.2);
+  }
+
+  .about-container h2 {
+    color: #D29B42;
+    font-size: 22px;
+    font-weight: bold;
+  }
+
+  .about-container p {
+    font-size: 14px;
+    color: #5A3E1B;
+    line-height: 1.6;
+  }
+
+  .about-container .contact-info {
+    font-size: 12px;
+    margin-top: 20px;
+    color: #444;
+  }
+
+  .about-container img {
+    max-width: 150px;
+    margin: 15px 0;
+  }
+")),
   tabsetPanel(
     id = "onglet",
 
@@ -448,6 +481,26 @@ button:hover {
         )
       )
     ),
+    
+    
+    tabPanel("?", HTML("
+  <div class='about-container'>
+    <h2>À propos de The CookingLab</h2>
+    <p>
+      The CookingLab, c'est une collection de <strong>plus de 7000 recettes</strong> issues de <strong>61 pays différents</strong>. <br>
+      Nous espérons que vous y trouverez de quoi éveiller vos papilles !
+    </p>
+    <img src='logo.png' alt='Logo The CookingLab'>
+    <p class='contact-info'>
+      <strong>Depuis février 2025</strong> <br>
+      Cette application a été créée dans le cadre du cours <em>Dataviz : RShiny</em> du Master 1 ECAP. <br><br>
+      📧 Pour toute question, contactez-nous :<br>
+      <strong>Isaline HERVE</strong> - isalineherve@gmail.com <br>
+      <strong>Djayan DAERON</strong> - daeron.djayan@gmail.com
+    </p>
+  </div>
+"))
+    ,
   )
 )
 
