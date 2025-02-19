@@ -1148,10 +1148,10 @@ server <- function(input, output, session) {
     recettes_found_name(result)
 
     output$recette_table_search <- renderDT({
-      datatable(result[, c("name", "description", "prep_time", "score")],
+      datatable(result[, c("name", "description", "prep_time")],
         options = list(pageLength = 5),
         selection = "single",
-        colnames = c("Nom", "Description", "Temps de préparation", "Score")
+        colnames = c("Nom", "Description", "Temps de préparation")
       )
     })
   })
