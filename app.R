@@ -436,8 +436,8 @@ button:hover {
             sidebarPanel(
               h4("Choix du pays"),
               selectInput("region_select", "Sélectionnez un pays :",
-                choices = c("Neutre", unique(na.omit(recette$cuisine))),
-                selected = "Neutre"
+                choices = c("Aucun", unique(na.omit(recette$cuisine))),
+                selected = "Aucun"
               ),
               actionButton("reset_map", "Réinitialiser la carte")
             ),
@@ -917,7 +917,12 @@ server <- function(input, output, session) {
       return(NULL)
     }
 
-    data$description <- substr(data$description, 1, 100) # Affiche uniquement les 100 premiers caractères
+    
+    data$description <- ifelse(nchar(data$description) > 150, 
+                               paste0(word(data$description, 1, str_count(substr(data$description, 1, 160), "\\S+")), "..."), 
+                               data$description)
+    
+    # Affiche uniquement les 100 premiers caractères
 
     datatable(data[, c("name", "description", "prep_time")],
       selection = "single",
