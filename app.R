@@ -693,7 +693,8 @@ server <- function(input, output, session) {
           ),
           column(
             8,
-            h3(recipe$name),
+            h3(style = "margin-top: 40px;", recipe$name)
+            ,
             img(
               src = recipe$image_url, width = "100%",
               style = "max-height: 300px; object-fit: cover; display: block; margin: 0 auto;"
@@ -961,7 +962,8 @@ server <- function(input, output, session) {
           ),
           column(
             8,
-            h3(recipe$name),
+            h3(style = "margin-top: 40px;", recipe$name)
+            ,
             img(
               src = recipe$image_url, width = "100%",
               style = "max-height: 300px; object-fit: cover; display: block; margin: 0 auto;"
@@ -1095,7 +1097,8 @@ server <- function(input, output, session) {
           ),
           column(
             8,
-            h3(recipe$name),
+            h3(style = "margin-top: 40px;", recipe$name)
+            ,
             img(
               src = recipe$image_url, width = "100%",
               style = "max-height: 300px; object-fit: cover; display: block; margin: 0 auto;"
@@ -1180,7 +1183,8 @@ server <- function(input, output, session) {
           ),
           column(
             8,
-            h3(recipe$name),
+            h3(style = "margin-top: 40px;", recipe$name)
+            ,
             img(
               src = recipe$image_url, width = "100%",
               style = "max-height: 300px; object-fit: cover; display: block; margin: 0 auto;"
