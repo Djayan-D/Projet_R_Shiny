@@ -921,7 +921,8 @@ server <- function(input, output, session) {
 
     datatable(data[, c("name", "description", "prep_time")],
       selection = "single",
-      options = list(pageLength = 5)
+      options = list(pageLength = 5),
+      colnames = c("Nom", "Description", "Temps de préparation")
     )
   })
 
@@ -1058,7 +1059,7 @@ server <- function(input, output, session) {
       datatable(result[, c("name", "description", "prep_time", "score")],
         options = list(pageLength = 5),
         selection = "single",
-        colnames = c("Nom", "Description", "Temps de préparation")
+        colnames = c("Nom", "Description", "Temps de préparation", "Score")
       )
     })
   })
@@ -1145,7 +1146,7 @@ server <- function(input, output, session) {
       datatable(result[, c("name", "description", "prep_time", "score")],
         options = list(pageLength = 5),
         selection = "single",
-        colnames = c("Nom", "Description", "Temps de préparation")
+        colnames = c("Nom", "Description", "Temps de préparation", "Score")
       )
     })
   })
