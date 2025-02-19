@@ -653,7 +653,8 @@ server <- function(input, output, session) {
     datatable(
       recettes_filtrees()[, c("name", "description", "prep_time")],
       selection = "single",
-      options = list(pageLength = 5)
+      options = list(pageLength = 5),
+      colnames = c("Nom", "Description", "Temps de préparation")
     )
   })
 
@@ -1056,7 +1057,8 @@ server <- function(input, output, session) {
     output$recette_table_ingredients <- renderDT({
       datatable(result[, c("name", "description", "prep_time", "score")],
         options = list(pageLength = 5),
-        selection = "single"
+        selection = "single",
+        colnames = c("Nom", "Description", "Temps de préparation")
       )
     })
   })
@@ -1142,7 +1144,8 @@ server <- function(input, output, session) {
     output$recette_table_search <- renderDT({
       datatable(result[, c("name", "description", "prep_time", "score")],
         options = list(pageLength = 5),
-        selection = "single"
+        selection = "single",
+        colnames = c("Nom", "Description", "Temps de préparation")
       )
     })
   })
