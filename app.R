@@ -26,6 +26,7 @@ library(DT)
 library(dplyr)
 library(shinyWidgets)
 library(bslib)
+library(stringi)
 
 
 
@@ -596,17 +597,26 @@ server <- function(input, output, session) {
 
   
   observeEvent(input$search, {
-    ingredients <- c(input$ing1, input$ing2, input$ing3) |>
-      tolower() |>
-      trimws()
+    ingredients <- c(input$ing1, input$ing2, input$ing3) |> 
+      tolower() |> 
+      trimws() |> 
+      stri_trans_general("Latin-ASCII")  # Convertir les accents en caractères simples
     ingredients <- ingredients[ingredients != ""]
-    allergenes <- tolower(input$allergie) |> trimws()
+    
+    allergenes <- tolower(input$allergie) |> trimws() |> 
+      stri_trans_general("Latin-ASCII")  # Convertir les accents en caractères simples
     allergenes <- unlist(strsplit(allergenes, "[^a-zA-Z]+"))
     allergenes <- allergenes[allergenes != ""]
+    
     diet_selected <- input$diet
     max_prep <- temps_labels[input$max_prep_time]
     meal_selected <- input$meal_type
+    
     recettes_filtrees_data <- recette
+    
+    # ⚡ Appliquer la normalisation aux noms d'ingrédients de la base de données
+    recettes_filtrees_data$ingr_name <- stri_trans_general(tolower(recettes_filtrees_data$ingr_name), "Latin-ASCII")
+    
 
     if (length(ingredients) > 0) {
       recettes_filtrees_data <- recettes_filtrees_data |>
@@ -1068,21 +1078,23 @@ server <- function(input, output, session) {
       input$ing26, input$ing27, input$ing28, input$ing29, input$ing210
     )
     ingredients <- tolower(trimws(ingredients))
+    ingredients <- stri_trans_general(ingredients, "Latin-ASCII")  # 🔥 Supprime les accents
     ingredients <- ingredients[ingredients != ""]
-
+    
     req(length(ingredients) > 0)
-
+    
     result <- recette |>
       mutate(
-        ingr_lower = tolower(ingr_name),
+        ingr_lower = stri_trans_general(tolower(ingr_name), "Latin-ASCII"),  # 🔥 Supprime les accents dans la base
         score = sapply(ingr_lower, function(x) {
           sum(sapply(ingredients, function(ing) as.numeric(grepl(ing, x, ignore.case = TRUE))))
         })
       ) |>
       filter(score > 0) |>
       arrange(desc(score))
-
+    
     recettes_found_ingredients(result)
+
 
     output$recette_table_ingredients <- renderDT({
       datatable(result[, c("name", "description", "prep_time", "score")],
@@ -1155,21 +1167,23 @@ server <- function(input, output, session) {
 
   observeEvent(input$search_by_name, {
     req(input$recette_search)
-
+    
     query <- tolower(trimws(input$recette_search))
+    query <- stri_trans_general(query, "Latin-ASCII")  # 🔥 Supprime les accents
     mots_recherche <- unlist(strsplit(query, "\\s+"))
-
+    
     result <- recette |>
       mutate(
-        name_lower = tolower(name),
+        name_lower = stri_trans_general(tolower(name), "Latin-ASCII"),  # 🔥 Supprime les accents dans la base
         score = sapply(name_lower, function(x) {
           sum(sapply(mots_recherche, function(mot) as.numeric(grepl(mot, x, ignore.case = TRUE))))
         })
       ) |>
       filter(score > 0) |>
       arrange(desc(score))
-
+    
     recettes_found_name(result)
+  
 
     output$recette_table_search <- renderDT({
       datatable(result[, c("name", "description", "prep_time")],
