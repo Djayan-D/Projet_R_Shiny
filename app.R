@@ -63,7 +63,33 @@ ui <- fluidPage(
   ),
   useShinyjs(),
   tags$style(HTML("
-    /* ====== Image de fond ====== */
+    /* ====== Personnalisation du Slider ====== */
+  /* Sélectionne les éléments internes du slider générés */
+  .irs-bar {
+    background-color: #E0B97A !important; /* Couleur de la barre */
+  }
+  
+  .irs-bar-edge {
+    background-color: #D29B42 !important; /* Couleur des bords de la barre */
+  }
+  
+  .irs-single {
+    background-color: #D29B42 !important; /* Couleur du bouton (single handle) */
+  }
+  
+  .irs-from, .irs-to {
+    color: #D29B42 !important; /* Couleur des valeurs affichées */
+  }
+  
+  .irs-line {
+    border-top: 3px solid #D29B42 !important; /* Définir l'épaisseur et la couleur de la ligne de séparation */
+  }
+
+  /* Définir la couleur de fond de la partie où le curseur se déplace */
+  .irs-slider {
+    background-color: #D29B42 !important;
+  }
+    
     /* ====== Image de fond ====== */
 body {
   background-image: url('fond2.png') !important;
@@ -296,6 +322,8 @@ button:hover {
     font-size: 22px;
     font-weight: bold;
   }
+  
+  
 
   .about-container p {
     font-size: 14px;
