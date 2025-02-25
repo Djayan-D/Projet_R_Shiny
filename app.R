@@ -428,7 +428,7 @@ button:hover {
               selectInput("diet", "Régime alimentaire :", choices = regimes_disponibles, selected = "None"),
               h4("Choix du repas"),
               selectInput("meal_type", "Type de repas :", 
-                          choices = c("Tout sélectionner", unique(na.omit(recette$course))), 
+                          choices = c("Tout sélectionner", sort(unique(na.omit(recette$course)))), 
                           selected = "Tout sélectionner"),
               h4("Ingrédients souhaités"),
               textInput("ing1", "Ingrédient 1"),
@@ -465,7 +465,7 @@ button:hover {
             sidebarPanel(
               h4("Choix du pays"),
               selectInput("region_select", "Sélectionnez un pays :",
-                choices = c("Aucun", unique(na.omit(recette$cuisine))),
+                choices = c("Aucun", sort(unique(na.omit(recette$cuisine)))),
                 selected = "Aucun"
               ),
               actionButton("reset_map", "Réinitialiser la carte")
@@ -1395,7 +1395,8 @@ server <- function(input, output, session) {
     fav_data <- fav_data[, !colnames(fav_data) %in% c("ingr_lower", "score")]
     datatable(fav_data[, c("name", "description", "prep_time")],
       selection = "single",
-      options = list(pageLength = 5)
+      options = list(pageLength = 5),
+      colnames = c("Nom", "Description", "Temps de préparation")
     )
   })
 
@@ -1418,13 +1419,13 @@ server <- function(input, output, session) {
       div(
         style = "border: 2px solid #ccc; padding: 15px; margin-bottom: 20px; background-color: #f9f9f9; position: relative;",
         actionButton("add_to_fav_barre", " Favoris ",
-          icon = icon("heart"),
-          style = "position: absolute; top: 5px; right: 62px; background: none; border: none; font-size: 18px; color: red; cursor: pointer;"
+                     icon = icon("heart"),
+                     style = "position: absolute; top: 5px; right: 62px; background: none; border: none; font-size: 18px; color: grey; cursor: pointer;"
         ),
         downloadButton("download_recipe", shiny::HTML("<span style='font-weight: bold;'>Télécharger en PDF</span>"),
                        style = "position: absolute; top: 5px; right: 180px; width: 200px; height: 47px; background: #D29B42; color: white; padding: 8px 12px; border-radius: 8px; border: none; font-size: 18px; cursor: pointer; text-align: center;"),
-        actionButton("close_recipe_fav", "✖",
-          style = "position: absolute; top: 5px; right: 10px; background: none; border: none; font-size: 18px; color: red; cursor: pointer;"
+        actionButton("close_recipe_barre", "✖",
+                     style = "position: absolute; top: 5px; right: 10px; background: none; border: none; font-size: 18px; color: red; cursor: pointer;"
         ),
         fluidRow(
           column(
