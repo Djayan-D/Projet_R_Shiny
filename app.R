@@ -998,7 +998,7 @@ server <- function(input, output, session) {
       tryCatch({
         download.file(recipe$image_url, image_path, mode = "wb")
       }, error = function(e) {
-        image_path <- "placeholder.jpg"  # Image par défaut si l’image ne peut pas être téléchargée
+        image_path <- "MainBefore.jpg"  # Image par défaut si l’image ne peut pas être téléchargée
       })
       
       # Créer une liste de paramètres pour R Markdown
