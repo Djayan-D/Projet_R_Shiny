@@ -986,6 +986,7 @@ server <- function(input, output, session) {
   })
 
   # ---- Générer le fichier de la recette pour le téléchargement ----
+  
   output$download_recipe <- downloadHandler(
     filename = function() {
       paste0(gsub(" ", "_", selected_recipe()$name), "_recette.pdf")
@@ -993,15 +994,15 @@ server <- function(input, output, session) {
     content = function(file) {
       recipe <- selected_recipe()
       
-      # Télécharger l'image localement
-      image_path <- tempfile(fileext = ".jpg")  # Créer un fichier temporaire pour l’image
+      # Télécharger l'image dans un fichier temporaire
+      image_path <- tempfile(fileext = ".jpg")
       tryCatch({
         download.file(recipe$image_url, image_path, mode = "wb")
       }, error = function(e) {
-        image_path <- "MainBefore.jpg"  # Image par défaut si l’image ne peut pas être téléchargée
+        image_path <- "placeholder.jpg"  # Veillez à ce que ce chemin soit correct
       })
       
-      # Créer une liste de paramètres pour R Markdown
+      # Préparer les paramètres pour le template
       params <- list(
         nom = recipe$name,
         regime = recipe$diet,
@@ -1009,17 +1010,40 @@ server <- function(input, output, session) {
         cook_time = recipe$cook_time,
         ingredients = paste0("- ", strsplit(recipe$ingr_name, ",")[[1]], collapse = "\n"),
         instructions = recipe$instructions,
-        image_path = image_path  # On passe le chemin du fichier téléchargé
+        image_path = image_path
       )
       
-      # Générer le PDF avec rmarkdown::render
-      rmarkdown::render("recette_template.Rmd",
-                        output_format = "pdf_document",
-                        output_file = file,
-                        params = params,
-                        envir = new.env(parent = globalenv()))
+      # Rendre le document et capturer le chemin du PDF généré
+      out_pdf <- rmarkdown::render(
+        "recette_template.Rmd",
+        output_format = "pdf_document",
+        params = params,
+        envir = new.env(parent = globalenv())
+      )
+      
+      # Vérifier que le PDF existe (pour le débuggage)
+      if (!file.exists(out_pdf)) {
+        stop("Le PDF n'a pas été créé.")
+      }
+      
+      # Copier le PDF généré vers le chemin fourni par Shiny
+      file.copy(out_pdf, file, overwrite = TRUE)
     }
   )
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+
+  
+  
   
   
 
