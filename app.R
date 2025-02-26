@@ -51,7 +51,7 @@ temps_labels <- c(
   "1h" = 60, "1h15" = 75, "1h30" = 90, "1h45" = 105, "2h ou plus" = 120
 )
 
-recette$ingr_qt[32] <- "1/2 tasse de riz (riz rouge à grains courts) 1/2 tasse d'Arhar dal (Split Toor Dal) 1/2 tasse de Chana dal (Bengal Gram Dal) 2 piments verts hachés 1 pouce de gingembre 1 piment rouge sec Sel au goût 1/4 cuillère à café d'asafoetida (hing) 1 oignon finement haché Huile pour arroser"
+recette$ingr_qt[32] <- "1/2 tasse de riz (riz rouge à grains courts) 1/2 tasse d'Arhar dal (Split Toor Dal) 1/2 tasse de Chana dal (Bengal Gram Dal) 2 piments verts hachés 1 pouce de gingembre 1 piment rouge sec, Sel au goût 1/4 cuillère à café d'asafoetida (hing) 1 oignon finement haché Huile pour arroser"
 
 
 #---------- 3. UI ----------
