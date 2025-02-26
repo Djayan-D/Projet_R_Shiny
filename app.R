@@ -363,7 +363,7 @@ button:hover {
           
           <p style='font-size: 18px; color: #333; max-width: 700px; margin: auto;
              animation: fadeIn 3s ease-in-out;'>
-            Notre site contient actuellement plus de <strong>7000 recettes</strong> provenant de 
+            Notre site contient actuellement environ <strong>7000 recettes</strong> provenant de 
             <strong>61 pays</strong> différents. <br><br>
             En espérant que vous trouverez de quoi vous régaler !
           </p>
@@ -713,7 +713,7 @@ button:hover {
                                    span(uiOutput("average_rating"), class = "average-rating"),
                                    HTML("
             <p>
-              The Cooking Lab, c'est une collection de <strong>plus de 7000 recettes</strong> issues de <strong>61 pays différents</strong>.
+              The Cooking Lab, c'est une collection de <strong> 7000 recettes</strong> issues de <strong>61 pays différents</strong>.
             </p>
             <img src='logo.png' alt='Logo The Cooking Lab'>
             <p class='contact-info'>
