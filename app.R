@@ -42,7 +42,7 @@ colnames(recette)[c(6:9)] <- c("ingr_name", "ingr_qt", "prep_time", "cook_time")
 
 str(recette)
 
-regimes_disponibles <- c("Aucun", unique(na.omit(recette$diet)))
+regimes_disponibles <- unique(na.omit(recette$diet))
 
 recette$total_time <- recette$prep_time + recette$cook_time
 
@@ -427,11 +427,15 @@ button:hover {
           sidebarLayout(
             sidebarPanel(
               h4("Choix du régime"),
-              selectInput("diet", "Régime alimentaire :", choices = regimes_disponibles, selected = "None"),
+              selectizeInput("diet", "Régime alimentaire :", 
+                             choices = c("Tout sélectionner", regimes_disponibles), 
+                             selected = "Tout sélectionner", 
+                             multiple = TRUE),
               h4("Choix du repas"),
-              selectInput("meal_type", "Type de repas :", 
-                          choices = c("Tout sélectionner", sort(unique(na.omit(recette$course)))), 
-                          selected = "Tout sélectionner"),
+              selectizeInput("meal_type", "Type de repas :", 
+                             choices = c("Tout sélectionner", sort(unique(na.omit(recette$course)))), 
+                             selected = "Tout sélectionner", 
+                             multiple = TRUE),
               h4("Ingrédients souhaités"),
               textInput("ing1", "Ingrédient 1"),
               textInput("ing2", "Ingrédient 2"),
@@ -801,6 +805,54 @@ server <- function(input, output, session) {
 
 
   #----- RECHERCHE CARACTERISTIQUES -----
+  
+  
+  # Régime alimentaire
+  observe({
+    # Si l'utilisateur a sélectionné autre chose que "Tout sélectionner"
+    if ("Tout sélectionner" %in% input$diet && length(input$diet) > 1) {
+      updateSelectizeInput(session, "diet", selected = input$diet, choices = regimes_disponibles)
+    }
+  })
+  
+  # Type de repas
+  observe({
+    if ("Tout sélectionner" %in% input$meal_type && length(input$meal_type) > 1) {
+      updateSelectizeInput(session, "meal_type", selected = input$meal_type, choices = sort(unique(na.omit(recette$course))))
+    }
+  })
+  
+  
+  
+  # Si l'utilisateur ne sélectionne rien, remettre "Tout sélectionner"
+  observe({
+    if (length(input$diet) == 0) {
+      updateSelectizeInput(session, "diet", selected = "Tout sélectionner", choices = c("Tout sélectionner", regimes_disponibles))
+    }
+  })
+  
+  observe({
+    if (length(input$meal_type) == 0) {
+      updateSelectizeInput(session, "meal_type", selected = "Tout sélectionner", choices = c("Tout sélectionner", sort(unique(na.omit(recette$course)))))
+    }
+  })
+  
+  
+  # Assurer qu'il y ait toujours au moins un choix sélectionné
+  observe({
+    if (length(input$diet) == 0) {
+      updateSelectizeInput(session, "diet", selected = "Tout sélectionner", choices = c("Tout sélectionner", regimes_disponibles))
+    }
+  })
+  
+  observe({
+    if (length(input$meal_type) == 0) {
+      updateSelectizeInput(session, "meal_type", selected = "Tout sélectionner", choices = c("Tout sélectionner", sort(unique(na.omit(recette$course)))))
+    }
+  })
+  
+  
+  
 
   recettes_filtrees <- reactiveVal(data.frame())
   selected_recipe <- reactiveVal(NULL)
@@ -843,16 +895,27 @@ server <- function(input, output, session) {
         filter(!sapply(tolower(ingr_name), function(ing) any(sapply(allergenes, grepl, ing, ignore.case = TRUE))))
     }
 
-    if (diet_selected != "Aucun") {
-      recettes_filtrees_data <- recettes_filtrees_data |> filter(diet == diet_selected)
+    if ("Tout sélectionner" %in% diet_selected) {
+      # Si "Tout sélectionner" est choisi, on ne filtre pas par régime
+      recettes_filtrees_data <- recettes_filtrees_data
+    } else if (length(diet_selected) > 0) {
+      # Filtrer les recettes par les régimes sélectionnés
+      recettes_filtrees_data <- recettes_filtrees_data %>%
+        filter(diet %in% diet_selected)
     }
+    
 
     if (!is.null(max_prep) && !is.na(max_prep)) {
       recettes_filtrees_data <- recettes_filtrees_data |> filter(total_time <= max_prep)
     }
     
-    if (meal_selected != "Tout sélectionner") {
-      recettes_filtrees_data <- recettes_filtrees_data |> filter(course == meal_selected)
+    if ("Tout sélectionner" %in% meal_selected) {
+      # Si "Tout sélectionner" est choisi, on ne filtre pas par type de repas
+      recettes_filtrees_data <- recettes_filtrees_data
+    } else if (length(meal_selected) > 0) {
+      # Filtrer les recettes par les types de repas sélectionnés
+      recettes_filtrees_data <- recettes_filtrees_data %>%
+        filter(course %in% meal_selected)
     }
 
     recettes_filtrees(recettes_filtrees_data)
