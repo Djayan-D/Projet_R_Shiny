@@ -16,6 +16,8 @@ library(styler)
 library(rmarkdown)
 library(tinytex)
 library(knitr)
+library(shinyWidgets)
+
 
 
 
@@ -567,26 +569,210 @@ button:hover {
     ),
     
     
-    tabPanel("À propos", HTML("
-  <div class='about-container'>
-    <h2>À propos de The Cooking Lab</h2>
-    <p>
-      The Cooking Lab, c'est une collection de <strong>plus de 7000 recettes</strong> issues de <strong>61 pays différents</strong>.
-    </p>
-    <img src='logo.png' alt='Logo The CookingLab'>
-    <p class='contact-info'>
-      <strong>Depuis février 2025</strong> <br>
-      Cette application a été créée dans le cadre du cours <em>Dataviz : RShiny</em> du Master 1 ECAP. <br><br>
-      📧 Pour toute question, contactez-nous :<br>
-      <strong>Isaline HERVE</strong> - <a href='mailto:isalineherve@gmail.com'>isalineherve@gmail.com</a> <br>
-      <strong>Djayan DAERON</strong> - <a href='mailto:daeron.djayan@gmail.com'>daeron.djayan@gmail.com</a>
-    </p>
-  </div>
-"))
+    #------ A PROPOS ------
     
-    ,
-  )
-)
+    
+    tabPanel("À propos",
+             fluidPage(
+               tags$head(
+                 # JavaScript pour l'interaction des étoiles
+                 tags$script(HTML("
+        function setRating(rating) {
+          var stars = document.querySelectorAll('.star');
+          stars.forEach(function(star, index) {
+            if (index < rating) {
+              star.classList.add('selected');
+            } else {
+              star.classList.remove('selected');
+            }
+          });
+          Shiny.setInputValue('rating', rating, {priority: 'event'});
+        }
+        
+        function hoverRating(rating) {
+          var stars = document.querySelectorAll('.star');
+          stars.forEach(function(star, index) {
+            if (index < rating) {
+              star.classList.add('hovered');
+            } else {
+              star.classList.remove('hovered');
+            }
+          });
+        }
+        
+        function resetHover() {
+          var stars = document.querySelectorAll('.star');
+          stars.forEach(function(star) {
+            star.classList.remove('hovered');
+          });
+        }
+        
+        function resetStars() {
+          var stars = document.querySelectorAll('.star');
+          stars.forEach(function(star) {
+            star.classList.remove('selected', 'hovered');
+          });
+          Shiny.setInputValue('rating', 0, {priority: 'event'});
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+          document.getElementById('submit_review').addEventListener('click', function() {
+            setTimeout(function() {
+              resetStars();
+            }, 100);
+          });
+        });
+      ")),
+                 
+                 # Styles CSS avec marges réduites et transparence uniforme
+                 tags$style(HTML("
+        .rating-stars {
+          font-size: 50px;
+          cursor: pointer;
+          display: flex;
+          gap: 5px;
+        }
+        .star {
+          color: gray;
+          transition: color 0.3s;
+        }
+        .star:hover, .star.hovered {
+          color: gold;
+        }
+        .star.selected {
+          color: gold;
+        }
+        
+        /* Agrandissement des étoiles dans la zone d'avis */
+        #rating_stars {
+          font-size: 35px;
+        }
+        
+        /* Uniformisation des styles pour tous les conteneurs */
+        .left-container, .right-container, .posted-comments-container {
+          background-color: rgba(255, 255, 255, 0.9);
+          border-radius: 10px;
+          box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+          padding: 15px;
+          font-family: 'Arial', sans-serif;
+          margin: 15px 30px 0 30px;  /* marge supérieure réduite */
+          min-height: 400px;
+        }
+        
+        .left-container {
+          font-size: 16px;
+          text-align: center;
+        }
+        
+        .left-container img {
+          display: block;
+          margin: 0 auto 20px auto;
+          max-width: 200px;
+          height: auto;
+        }
+        
+        /* Note moyenne à côté du titre */
+        .average-rating {
+          font-size: 20px;
+          font-weight: bold;
+          color: gold;
+          margin-left: 15px;
+        }
+        
+        /* Styles des commentaires */
+        .comment {
+          background: #f9f9f9;
+          border: none;
+          border-radius: 5px;
+          padding: 10px;
+          margin-bottom: 10px;
+        }
+        .comment .rating-stars {
+          font-size: 40px;
+          color: gold;
+          margin-bottom: 5px;
+        }
+        .comment p {
+          margin: 5px 0;
+        }
+      "))
+               ),
+               
+               # Ligne supérieure : Section "À propos" (gauche) et saisie du commentaire (droite)
+               fluidRow(style = "margin-top: 30px;",
+                        column(8,
+                               div(class = "left-container",
+                                   # Ajout du titre avec note moyenne
+                                   h2(style = "display:inline-block;", "À propos de The Cooking Lab"),
+                                   span(uiOutput("average_rating"), class = "average-rating"),
+                                   HTML("
+            <p>
+              The Cooking Lab, c'est une collection de <strong>plus de 7000 recettes</strong> issues de <strong>61 pays différents</strong>.
+            </p>
+            <img src='logo.png' alt='Logo The Cooking Lab'>
+            <p class='contact-info'>
+              <strong>Depuis février 2025</strong><br>
+              Cette application a été créée dans le cadre du cours <em>Dataviz : RShiny</em> du Master 1 ECAP.<br><br>
+              📧 Pour toute question, contactez-nous :<br>
+              <strong>Isaline HERVE</strong> - <a href='mailto:isalineherve@gmail.com'>isalineherve@gmail.com</a><br>
+              <strong>Djayan DAERON</strong> - <a href='mailto:daeron.djayan@gmail.com'>daeron.djayan@gmail.com</a>
+            </p>
+          ")
+                               )
+                        ),
+                        column(4,
+                               div(class = "right-container",
+                                   h3("Laissez un avis sur The Cooking Lab"),
+                                   div(id = "rating_stars",
+                                       span("★", class = "star", onclick = "setRating(1)", onmouseover = "hoverRating(1)", onmouseout = "resetHover()"),
+                                       span("★", class = "star", onclick = "setRating(2)", onmouseover = "hoverRating(2)", onmouseout = "resetHover()"),
+                                       span("★", class = "star", onclick = "setRating(3)", onmouseover = "hoverRating(3)", onmouseout = "resetHover()"),
+                                       span("★", class = "star", onclick = "setRating(4)", onmouseover = "hoverRating(4)", onmouseout = "resetHover()"),
+                                       span("★", class = "star", onclick = "setRating(5)", onmouseover = "hoverRating(5)", onmouseout = "resetHover()")
+                                   ),
+                                   textAreaInput("comment", "Votre commentaire :", "", rows = 3, width = "100%"),
+                                   actionButton("submit_review", "Soumettre", icon = icon("paper-plane"), class = "btn-primary")
+                               )
+                        )
+               ),
+               
+               # Ligne inférieure : Affichage des commentaires postés
+               fluidRow(
+                 column(12,
+                        div(class = "posted-comments-container",
+                            h3("Commentaires soumis"),
+                            uiOutput("comments_ui")
+                        )
+                 )
+               )
+             )
+    )))
+    
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
 
 
 
@@ -1456,6 +1642,72 @@ server <- function(input, output, session) {
     selected_recipe(NULL)
     updateTabsetPanel(session, "favoris_tabs", selected = "Liste des favoris")
   })
+  
+  #-----
+  
+
+  # Liste réactive pour stocker les commentaires
+  comments_data <- reactiveValues(comments = list())
+  
+  # Affichage des commentaires
+  output$comments_ui <- renderUI({
+    if (length(comments_data$comments) == 0) {
+      return(p("Aucun commentaire soumis pour le moment."))
+    }
+    
+    tagList(
+      lapply(comments_data$comments, function(comment) {
+        div(class = "comment",
+            p(HTML(paste("<strong>Note :</strong>", paste(rep("★", comment$rating), collapse = "")))),
+            p(HTML(paste("<strong>Commentaire :</strong>", comment$text)))
+        )
+      })
+    )
+  })
+  
+  # Gestion du bouton de soumission
+  observeEvent(input$submit_review, {
+    if (is.null(input$rating) || input$rating == 0) {
+      showNotification("Veuillez sélectionner une note.", type = "warning")
+      return()
+    }
+    
+    if (input$comment == "") {
+      showNotification("Veuillez entrer un commentaire.", type = "warning")
+      return()
+    }
+    
+    # Ajouter le nouveau commentaire à la liste existante
+    new_comment <- list(rating = input$rating, text = input$comment)
+    comments_data$comments <- c(comments_data$comments, list(new_comment))
+    
+    # Vider le champ texte et réinitialiser la note
+    updateTextAreaInput(session, "comment", value = "")
+    showNotification("Merci pour votre avis !", type = "message")
+  })
+  
+  
+  
+  ratings <- reactiveVal(c())
+  
+  # Lors de la soumission, ajouter la note seulement si un commentaire a été entré
+  observeEvent(input$submit_review, {
+    if (!is.null(input$comment) && trimws(input$comment) != "" &&
+        !is.null(input$rating) && input$rating > 0) {
+      ratings(c(ratings(), input$rating))
+    }
+  })
+  
+  # Calcul et affichage de la note moyenne
+  output$average_rating <- renderUI({
+    if (length(ratings()) > 0) {
+      avg <- round(mean(ratings()), 1)
+      HTML(paste0("<span>⭐ ", avg, "/5</span>"))
+    } else {
+      HTML("<span>Pas encore de note</span>")
+    }
+  })
+  
 }
 #---------- 5. LANCER L'APPLICATION ----------
 shinyApp(ui = ui, server = server)
