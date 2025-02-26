@@ -578,11 +578,12 @@ button:hover {
       <strong>Depuis février 2025</strong> <br>
       Cette application a été créée dans le cadre du cours <em>Dataviz : RShiny</em> du Master 1 ECAP. <br><br>
       📧 Pour toute question, contactez-nous :<br>
-      <strong>Isaline HERVE</strong> - isalineherve@gmail.com <br>
-      <strong>Djayan DAERON</strong> - daeron.djayan@gmail.com
+      <strong>Isaline HERVE</strong> - <a href='mailto:isalineherve@gmail.com'>isalineherve@gmail.com</a> <br>
+      <strong>Djayan DAERON</strong> - <a href='mailto:daeron.djayan@gmail.com'>daeron.djayan@gmail.com</a>
     </p>
   </div>
 "))
+    
     ,
   )
 )
