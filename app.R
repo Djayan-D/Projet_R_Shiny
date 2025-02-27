@@ -1678,7 +1678,7 @@ server <- function(input, output, session) {
         ),
         downloadButton("download_recipe", shiny::HTML("<span style='font-weight: bold;'>Télécharger en PDF</span>"),
                        style = "position: absolute; top: 5px; right: 180px; width: 200px; height: 47px; background: #D29B42; color: white; padding: 8px 12px; border-radius: 8px; border: none; font-size: 18px; cursor: pointer; text-align: center;"),
-        actionButton("close_recipe_barre", "✖",
+        actionButton("close_recipe_fav", "✖",
                      style = "position: absolute; top: 5px; right: 10px; background: none; border: none; font-size: 18px; color: red; cursor: pointer;"
         ),
         fluidRow(
