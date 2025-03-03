@@ -56,7 +56,46 @@ recette$ingr_qt[32] <- "1/2 tasse de riz (riz rouge à grains courts) 1/2 tasse 
 
 #---------- 3. UI ----------
 
+loginModal <- function() {
+  modalDialog(
+    title = div(style = "text-align: center; font-size: 22px; font-weight: bold; color: #D29B42;", 
+                icon("user"), " Connexion / Inscription"),
+    
+    div(style = "padding: 10px; text-align: center;",
+        div(id = "error_message", style = "color: red; font-weight: bold; margin-bottom: 10px;"), # Zone d'affichage des erreurs
+        textInput("user_id", NULL, placeholder = "Nom d'utilisateur"),
+        passwordInput("password", NULL, placeholder = "Mot de passe")
+    ),
+    
+    
+    # Boutons en pied de page
+    footer = tagList(
+      actionButton("btn_login", "Se connecter", class = "btn-toggle btn-selected"),
+      actionButton("btn_register", "S'inscrire", class = "btn-toggle"),
+      actionButton("cancel_login", "Annuler", class = "btn-cancel")
+    )
+  )
+}
+
+
+
+
+
+
+
+
+
+
+
+
 ui <- fluidPage(
+  
+  useShinyjs(),
+  div(style = "position: absolute; top: 1.5px; right: 20px;",  
+      actionButton("open_login", "Se connecter", icon = icon("user"), class = "btn-login")
+  ),
+  
+  
   theme = bs_theme(
     bootswatch = "united",
     base_font = font_google("Lato", wght = 400), # Police moderne et plus sobre
@@ -345,6 +384,35 @@ button:hover {
     max-width: 150px;
     margin: 15px 0;
   }
+  
+.btn-toggle {
+  background-color: #f2f2f2;
+    color: black;
+  font-weight: bold;
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  cursor: pointer;
+  transition: all 0.3s;
+  margin: 5px;
+}
+
+.btn-selected {
+  background-color: #D29B42 !important;  /* Orange */
+    color: white !important;
+  border: 1px solid #B87333 !important; /* Bordure marron */
+}
+
+.btn-cancel {
+  background-color: #ccc;
+    color: black;
+  font-weight: bold;
+  padding: 10px;
+  border-radius: 5px;
+  border: none;
+}
+
+
 ")),
   tabsetPanel(
     id = "onglet",
@@ -792,6 +860,188 @@ comments_data <- reactiveVal(data.frame(text = character(), rating = numeric(), 
 
 server <- function(input, output, session) {
   
+
+  
+  
+  first_load <- reactiveVal(TRUE)  # Indique que c'est le premier chargement
+  
+  user_logged <- reactiveVal(NULL)  # Stocke le nom d'utilisateur connecté
+  
+  observeEvent(input$btn_login, {
+    req(input$user_id, input$password)  # Vérifie que les champs sont remplis
+    
+    users <- load_users()
+    
+    if (!(input$user_id %in% users$user)) {
+      shinyjs::html("error_message", "❌ Utilisateur non trouvé !")
+    } else {
+      stored_password <- users$password[users$user == input$user_id]
+      
+      if (input$password == stored_password) {
+        shinyjs::html("error_message", "")  # Efface les erreurs
+        showNotification(paste("Bienvenue", input$user_id, "!"), type = "message")
+        user_logged(input$user_id)  # Stocke l'utilisateur connecté
+        removeModal()
+      } else {
+        shinyjs::html("error_message", "❌ Mot de passe incorrect !")
+      }
+    }
+  })
+  
+  
+  observeEvent(input$btn_register, {
+    req(input$user_id, input$password)  # Vérifie que les champs sont remplis
+    
+    users <- load_users()
+    
+    if (input$user_id %in% users$user) {
+      shinyjs::html("error_message", "❌ Nom d'utilisateur déjà pris !")
+    } else {
+      success <- save_user(input$user_id, input$password)
+      
+      if (success) {
+        shinyjs::html("error_message", "")  # Efface les erreurs
+        showNotification("Compte créé avec succès !", type = "message")
+        user_logged(input$user_id)  # Stocke l'utilisateur connecté
+        removeModal()
+      } else {
+        shinyjs::html("error_message", "❌ Erreur lors de la création du compte !")
+      }
+    }
+  })
+  
+  
+  observeEvent(input$cancel_login, {
+    removeModal()  # Ferme la fenêtre modale
+  })
+  
+  
+  
+  
+  observeEvent(input$open_login, {
+    # 🔹 Empêcher l'affichage automatique de la fenêtre de connexion au lancement
+    if (first_load()) {
+      first_load(FALSE)  # Désactive la protection après le premier clic
+      return()
+    }
+    
+    if (is.null(user_logged())) {
+      # 🔹 Si l'utilisateur n'est pas connecté, ouvrir la fenêtre de connexion
+      showModal(loginModal())
+    } else {
+      # 🔹 Si l'utilisateur est connecté, alors il se déconnecte
+      showNotification(paste("Déconnexion de", user_logged()), type = "warning")
+      user_logged(NULL)  # Réinitialise l'utilisateur
+      favorites(data.frame())  # Vide les favoris
+      updateActionButton(session, "open_login", label = "Se connecter", icon = icon("user"))
+    }
+  })
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  #############
+  
+  load_users <- function() {
+    file_path <- "data/users.csv"
+    if (!file.exists(file_path)) {
+      return(data.frame(user = character(), password = character(), stringsAsFactors = FALSE))
+    }
+    return(read.csv(file_path, stringsAsFactors = FALSE))
+  }
+  
+  save_user <- function(user_id, password) {
+    users <- load_users()
+    
+    if (user_id %in% users$user) {
+      return(FALSE)  # Le nom d'utilisateur existe déjà
+    }
+    
+    new_user <- data.frame(user = user_id, password = password, stringsAsFactors = FALSE)
+    users <- rbind(users, new_user)
+    write.csv(users, "data/users.csv", row.names = FALSE)
+    
+    return(TRUE)  # Inscription réussie
+  }
+  
+  
+  #############################################
+  
+  favorites <- reactiveVal(data.frame())  # Stocke les favoris de l'utilisateur
+  
+  load_favorites <- function(user_id) {
+    file_path <- paste0("data/favorites_", user_id, ".csv")
+    if (file.exists(file_path)) {
+      return(read.csv(file_path, stringsAsFactors = FALSE))
+    } else {
+      return(data.frame())  # Retourne un tableau vide si pas de favoris
+    }
+  }
+  
+  save_favorites <- function(user_id, fav_data) {
+    file_path <- paste0("data/favorites_", user_id, ".csv")
+    write.csv(fav_data, file_path, row.names = FALSE)
+  }
+  
+  
+  output$fav_table <- renderDT({
+    datatable(favorites(), selection = "single")
+  })
+  
+  
+  ##################################
+  
+  comments_data <- reactiveVal(data.frame(text = character(), rating = numeric(), stringsAsFactors = FALSE))
+  
+  observeEvent(input$open_login, {
+    showModal(loginModal())  # Affiche la fenêtre modale quand on clique sur "Se connecter"
+  })
+  
+  observeEvent(input$validate_login, {
+    req(input$user_id, input$password)  # Vérifie que les champs ne sont pas vides
+    
+    users <- load_users()  # Charge la liste des utilisateurs
+    
+    if (input$login_mode == "S'inscrire") {
+      success <- save_user(input$user_id, input$password)
+      
+      if (success) {
+        showNotification("Compte créé avec succès !", type = "message")
+        removeModal()
+      } else {
+        showNotification("Nom d'utilisateur déjà pris !", type = "error")
+      }
+      
+    } else {  # Mode connexion
+      if (!(input$user_id %in% users$user)) {
+        showNotification("Utilisateur non trouvé !", type = "error")
+      } else {
+        stored_password <- users$password[users$user == input$user_id]
+        
+        if (input$password == stored_password) {
+          showNotification(paste("Bienvenue", input$user_id, "!"), type = "message")
+          favorites(load_favorites(input$user_id))  # Charge les favoris de l'utilisateur
+          removeModal()
+        } else {
+          showNotification("Mot de passe incorrect !", type = "error")
+        }
+      }
+    }
+  })
+  
+  
+  
+  
+  
+  #####################"
+  
   # Fichier de sauvegarde des commentaires
   comments_file <- "data/comments.csv"
   
@@ -805,30 +1055,26 @@ server <- function(input, output, session) {
   
   
   observeEvent(input$submit_review, {
-    new_comment <- input$comment
-    new_rating <- input$rating
+    req(input$user_id, input$comment, input$rating)  # Vérifie que tout est rempli
     
-    if (nchar(new_comment) > 0 && new_rating > 0) {
-      # Charger les anciens commentaires
-      old_comments <- comments_data()
-      
-      # Ajouter le nouveau commentaire avec la note
-      updated_comments <- rbind(old_comments, data.frame(
-        text = new_comment,
-        rating = new_rating,
-        stringsAsFactors = FALSE
-      ))
-      
-      comments_data(updated_comments)
-      
-      # Sauvegarder dans le fichier CSV
-      write.csv(updated_comments, comments_file, row.names = FALSE)
-      
-      # Réinitialiser le champ de texte et les étoiles
-      updateTextInput(session, "comment", value = "")
-      shinyjs::runjs("resetStars();")  # Réinitialiser les étoiles en JS
-    }
+    new_comment <- data.frame(
+      user = input$user_id,  # 🔹 Ajoute l'identifiant de l'utilisateur
+      text = input$comment,
+      rating = input$rating,
+      stringsAsFactors = FALSE
+    )
+    
+    old_comments <- comments_data()
+    updated_comments <- rbind(old_comments, new_comment)
+    
+    comments_data(updated_comments)
+    write.csv(updated_comments, "data/comments.csv", row.names = FALSE)  # 🔹 Sauvegarde
+    
+    # Réinitialisation
+    updateTextInput(session, "comment", value = "")
+    shinyjs::runjs("resetStars();")  
   })
+  
   
   
   
@@ -1051,10 +1297,35 @@ server <- function(input, output, session) {
     )
   })
 
+  
   observeEvent(input$close_recipe, {
-    selected_recipe(NULL)
-    updateTabsetPanel(session, "carac_tabs", selected = "Caractéristiques")
+    selected_recipe(NULL)  # Réinitialiser la recette sélectionnée
+    
+    # Définir les sous-onglets des différents onglets principaux
+    sous_onglets <- list(
+      "carac_tabs" = "Caractéristiques",
+      "carte_tabs" = "Carte",
+      "placard_tabs" = "Ingrédients",
+      "barre_tabs" = "Nom de la recette"
+    )
+    
+    # Vérifier si l'onglet actuel a un sous-onglet défini et le mettre à jour
+    for (id in names(sous_onglets)) {
+      if (!is.null(input[[id]])) {  
+        updateTabsetPanel(session, id, selected = sous_onglets[[id]])
+      }
+    }
+    
+    # 🔹 Cas particulier pour Favoris
+    if (input$onglet == "Favoris") {
+      updateTabsetPanel(session, "favoris_tabs", selected = "Liste des favoris")
+    }
   })
+  
+  
+  
+  
+
 
   # ---- RECHERCHE PAR CARTE ----
 
@@ -1584,111 +1855,48 @@ server <- function(input, output, session) {
 
 
   #----- FAVORIS -----
-  observeEvent(input$add_to_fav_carac, {
-    req(selected_recipe())
-    new_recipe <- selected_recipe()
-    new_recipe <- new_recipe[, !colnames(new_recipe) %in% c("name_lower", "ingr_lower", "score")]
-    current_fav <- favorites()
-    if (nrow(current_fav) > 0 && new_recipe$name %in% current_fav$name) {
-      # Supprimer la recette des favoris
-      updated_fav <- current_fav[current_fav$name != new_recipe$name, ]
-      favorites(updated_fav)
-      shinyjs::runjs("$('#add_to_fav_carac').css('color', 'grey');")
-      showNotification("Recette retirée des favoris", type = "warning")
-    } else {
-      # Ajouter la recette aux favoris
-      if (nrow(current_fav) == 0) {
-        favorites(new_recipe)
+  manage_favorites <- function(button_id) {
+    observeEvent(input[[button_id]], {
+      req(input$user_id, selected_recipe())  
+      
+      new_recipe <- selected_recipe()
+      new_recipe <- new_recipe[, !colnames(new_recipe) %in% c("name_lower", "ingr_lower", "score")]
+      current_fav <- favorites()
+      
+      if (nrow(current_fav) > 0 && new_recipe$name %in% current_fav$name) {
+        updated_fav <- current_fav[current_fav$name != new_recipe$name, ]
+        favorites(updated_fav)
+        save_favorites(input$user_id, updated_fav)
+        shinyjs::runjs(paste0("$('#", button_id, "').css('color', 'grey');"))
+        showNotification("Recette retirée des favoris", type = "warning")
+        
+        # 🔹 Revenir à l'onglet "Liste des favoris" après suppression
+        updateTabsetPanel(session, "favoris_tabs", selected = "Liste des favoris")
+        
       } else {
-        all_columns <- union(colnames(current_fav), colnames(new_recipe))
-        new_recipe <- new_recipe[, all_columns, drop = FALSE]
-        current_fav <- current_fav[, all_columns, drop = FALSE]
-        favorites(rbind(current_fav, new_recipe))
+        if (nrow(current_fav) == 0) {
+          updated_fav <- new_recipe
+        } else {
+          all_columns <- union(colnames(current_fav), colnames(new_recipe))
+          new_recipe <- new_recipe[, all_columns, drop = FALSE]
+          current_fav <- current_fav[, all_columns, drop = FALSE]
+          updated_fav <- rbind(current_fav, new_recipe)
+        }
+        
+        favorites(updated_fav)
+        save_favorites(input$user_id, updated_fav)
+        shinyjs::runjs(paste0("$('#", button_id, "').css('color', 'red');"))
+        showNotification("Recette ajoutée aux favoris", type = "message")
       }
-      shinyjs::runjs("$('#add_to_fav_carac').css('color', 'red');")
-      showNotification("Recette ajoutée aux favoris", type = "message")
-    }
-  })
-
-  observeEvent(input$add_to_fav_carte, {
-    req(selected_recipe())
-    new_recipe <- selected_recipe()
-    new_recipe <- new_recipe[, !colnames(new_recipe) %in% c("name_lower", "ingr_lower", "score")]
-    current_fav <- favorites()
-
-    if (nrow(current_fav) > 0 && new_recipe$name %in% current_fav$name) {
-      # Supprimer la recette des favoris
-      updated_fav <- current_fav[current_fav$name != new_recipe$name, ]
-      favorites(updated_fav)
-      shinyjs::runjs("$('#add_to_fav_carte').css('color', 'grey');")
-      showNotification("Recette retirée des favoris", type = "warning")
-    } else {
-      # Ajouter la recette aux favoris
-      if (nrow(current_fav) == 0) {
-        favorites(new_recipe)
-      } else {
-        all_columns <- union(colnames(current_fav), colnames(new_recipe))
-        new_recipe <- new_recipe[, all_columns, drop = FALSE]
-        current_fav <- current_fav[, all_columns, drop = FALSE]
-        favorites(rbind(current_fav, new_recipe))
-      }
-      shinyjs::runjs("$('#add_to_fav_carte').css('color', 'red');")
-      showNotification("Recette ajoutée aux favoris", type = "message")
-    }
-  })
-
-  observeEvent(input$add_to_fav_placard, {
-    req(selected_recipe())
-    new_recipe <- selected_recipe()
-    new_recipe <- new_recipe[, !colnames(new_recipe) %in% c("name_lower", "ingr_lower", "score")]
-    current_fav <- favorites()
-    if (nrow(current_fav) > 0 && new_recipe$name %in% current_fav$name) {
-      # Supprimer la recette des favoris
-      updated_fav <- current_fav[current_fav$name != new_recipe$name, ]
-      favorites(updated_fav)
-      shinyjs::runjs("$('#add_to_fav_placard').css('color', 'grey');")
-      showNotification("Recette retirée des favoris", type = "warning")
-    } else {
-      # Ajouter la recette aux favoris
-      if (nrow(current_fav) == 0) {
-        favorites(new_recipe)
-      } else {
-        all_columns <- union(colnames(current_fav), colnames(new_recipe))
-        new_recipe <- new_recipe[, all_columns, drop = FALSE]
-        current_fav <- current_fav[, all_columns, drop = FALSE]
-        favorites(rbind(current_fav, new_recipe))
-      }
-      shinyjs::runjs("$('#add_to_fav_placard').css('color', 'red');")
-      showNotification("Recette ajoutée aux favoris", type = "message")
-    }
-  })
-
-
-  observeEvent(input$add_to_fav_barre, {
-    req(selected_recipe())
-    new_recipe <- selected_recipe()
-    new_recipe <- new_recipe[, !colnames(new_recipe) %in% c("name_lower", "ingr_lower", "score")]
-    current_fav <- favorites()
-    if (nrow(current_fav) > 0 && new_recipe$name %in% current_fav$name) {
-      # Supprimer la recette des favoris
-      updated_fav <- current_fav[current_fav$name != new_recipe$name, ]
-      favorites(updated_fav)
-      shinyjs::runjs("$('#add_to_fav_barre').css('color', 'grey');")
-      showNotification("Recette retirée des favoris", type = "warning")
-    } else {
-      # Ajouter la recette aux favoris
-      if (nrow(current_fav) == 0) {
-        favorites(new_recipe)
-      } else {
-        all_columns <- union(colnames(current_fav), colnames(new_recipe))
-        new_recipe <- new_recipe[, all_columns, drop = FALSE]
-        current_fav <- current_fav[, all_columns, drop = FALSE]
-        favorites(rbind(current_fav, new_recipe))
-      }
-      shinyjs::runjs("$('#add_to_fav_barre').css('color', 'red');")
-      showNotification("Recette ajoutée aux favoris", type = "message")
-    }
-  })
+    })
+  }
+  
+  
+  manage_favorites("add_to_fav_carac")
+  manage_favorites("add_to_fav_carte")
+  manage_favorites("add_to_fav_placard")
+  manage_favorites("add_to_fav_barre")
+  
 
   output$fav_table <- renderDT({
     fav_data <- favorites()
@@ -1727,7 +1935,7 @@ server <- function(input, output, session) {
         ),
         downloadButton("download_recipe", shiny::HTML("<span style='font-weight: bold;'>Télécharger en PDF</span>"),
                        style = "position: absolute; top: 5px; right: 180px; width: 200px; height: 47px; background: #D29B42; color: white; padding: 8px 12px; border-radius: 8px; border: none; font-size: 18px; cursor: pointer; text-align: center;"),
-        actionButton("close_recipe_barre", "✖",
+        actionButton("close_recipe", "✖",
                      style = "position: absolute; top: 5px; right: 10px; background: none; border: none; font-size: 18px; color: red; cursor: pointer;"
         ),
         fluidRow(
@@ -1754,10 +1962,16 @@ server <- function(input, output, session) {
     )
   })
 
-  observeEvent(input$close_recipe_fav, {
-    selected_recipe(NULL)
-    updateTabsetPanel(session, "favoris_tabs", selected = "Liste des favoris")
+  observeEvent(input$close_recipe, {
+    selected_recipe(NULL)  # Réinitialiser la recette sélectionnée
+    
+    # Vérifier si on est bien dans l'onglet "Favoris" avant de changer
+    if (input$onglet == "Favoris") {
+      updateTabsetPanel(session, "favoris_tabs", selected = "Liste des favoris")  
+    }
   })
+  
+  
   
   #-----
   
@@ -1769,20 +1983,27 @@ server <- function(input, output, session) {
   output$comments_ui <- renderUI({
     comments <- comments_data()
     
-    if (nrow(comments_data()) == 0) {
-      return(p("Aucun commentaire soumis pour le moment."))
+    if (nrow(comments) == 0) {
+      return(h4("Aucun commentaire pour l’instant. Soyez le premier !"))
     }
     
-    tagList(
-      lapply(1:nrow(comments), function(i) {
-        comment <- comments[i, ]
-        div(class = "comment",
-            p(HTML(paste("<strong>Note :</strong>", paste(rep("★", comment$rating), collapse = "")))),
-            p(HTML(paste("<strong>Commentaire :</strong>", comment$text)))
+    comment_list <- apply(comments, 1, function(row) {
+      tagList(
+        div(
+          style = "background-color: #f9f9f9; padding: 10px; border-radius: 8px; margin-bottom: 10px;",
+          h5(strong(row["user"])),  # 🔹 Affiche l’utilisateur
+          div(
+            style = "color: gold;",
+            paste(rep("★", row["rating"]), collapse = "")
+          ),
+          p(row["text"])
         )
-      })
-    )
+      )
+    })
+    
+    do.call(tagList, comment_list)
   })
+  
   
   
   # Gestion du bouton de soumission
@@ -1820,16 +2041,16 @@ server <- function(input, output, session) {
   
   # Calcul et affichage de la note moyenne
   output$average_rating <- renderUI({
-    comments <- comments_data()  # 🔥 Récupère tous les commentaires sauvegardés
-    
-    if (nrow(comments) > 0 && "rating" %in% colnames(comments)) {
-      avg <- round(mean(comments$rating, na.rm = TRUE), 1)  # 🟢 Calcule la moyenne avec toutes les notes
-      HTML(paste0("<span>⭐ ", avg, "/5</span>"))
-    } else {
-      HTML("<span>Pas encore de note</span>")
-    }
-  })
+  comments <- comments_data()  # 🔥 Récupère tous les commentaires sauvegardés
   
+  if (nrow(comments) > 0 && "rating" %in% colnames(comments)) {
+    avg <- round(mean(comments$rating, na.rm = TRUE), 1)  # 🟢 Calcule la moyenne avec toutes les notes
+    HTML(paste0("<span>⭐ ", avg, "/5</span>"))
+  } else {
+    HTML("<span>Pas encore de note</span>")
+  }
+})
+
   
 }
 #---------- 5. LANCER L'APPLICATION ----------
