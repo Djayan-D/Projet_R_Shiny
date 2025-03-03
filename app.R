@@ -1820,13 +1820,16 @@ server <- function(input, output, session) {
   
   # Calcul et affichage de la note moyenne
   output$average_rating <- renderUI({
-    if (length(ratings()) > 0) {
-      avg <- round(mean(ratings()), 1)
+    comments <- comments_data()  # 🔥 Récupère tous les commentaires sauvegardés
+    
+    if (nrow(comments) > 0 && "rating" %in% colnames(comments)) {
+      avg <- round(mean(comments$rating, na.rm = TRUE), 1)  # 🟢 Calcule la moyenne avec toutes les notes
       HTML(paste0("<span>⭐ ", avg, "/5</span>"))
     } else {
       HTML("<span>Pas encore de note</span>")
     }
   })
+  
   
 }
 #---------- 5. LANCER L'APPLICATION ----------
