@@ -788,7 +788,56 @@ button:hover {
 
 #---------- 4. SERVEUR ----------
 
+comments_data <- reactiveVal(data.frame(text = character(), rating = numeric(), stringsAsFactors = FALSE))
+
 server <- function(input, output, session) {
+  
+  # Fichier de sauvegarde des commentaires
+  comments_file <- "data/comments.csv"
+  
+  # Vérifier si le fichier existe, sinon le créer
+  if (!file.exists(comments_file)) {
+    write.csv(data.frame(text = character(), rating = numeric()), comments_file, row.names = FALSE)
+  }
+  
+  # Charger les commentaires dans une variable réactive
+  comments_data <- reactiveVal(read.csv(comments_file, stringsAsFactors = FALSE))
+  
+  
+  observeEvent(input$submit_review, {
+    new_comment <- input$comment
+    new_rating <- input$rating
+    
+    if (nchar(new_comment) > 0 && new_rating > 0) {
+      # Charger les anciens commentaires
+      old_comments <- comments_data()
+      
+      # Ajouter le nouveau commentaire avec la note
+      updated_comments <- rbind(old_comments, data.frame(
+        text = new_comment,
+        rating = new_rating,
+        stringsAsFactors = FALSE
+      ))
+      
+      comments_data(updated_comments)
+      
+      # Sauvegarder dans le fichier CSV
+      write.csv(updated_comments, comments_file, row.names = FALSE)
+      
+      # Réinitialiser le champ de texte et les étoiles
+      updateTextInput(session, "comment", value = "")
+      shinyjs::runjs("resetStars();")  # Réinitialiser les étoiles en JS
+    }
+  })
+  
+  
+  
+  
+  
+  
+  
+  
+  ############################"
   favorites <- reactiveVal(recette[0, ])
 
   observeEvent(input$btn_explore, {
@@ -1678,7 +1727,7 @@ server <- function(input, output, session) {
         ),
         downloadButton("download_recipe", shiny::HTML("<span style='font-weight: bold;'>Télécharger en PDF</span>"),
                        style = "position: absolute; top: 5px; right: 180px; width: 200px; height: 47px; background: #D29B42; color: white; padding: 8px 12px; border-radius: 8px; border: none; font-size: 18px; cursor: pointer; text-align: center;"),
-        actionButton("close_recipe_fav", "✖",
+        actionButton("close_recipe_barre", "✖",
                      style = "position: absolute; top: 5px; right: 10px; background: none; border: none; font-size: 18px; color: red; cursor: pointer;"
         ),
         fluidRow(
@@ -1718,12 +1767,15 @@ server <- function(input, output, session) {
   
   # Affichage des commentaires
   output$comments_ui <- renderUI({
-    if (length(comments_data$comments) == 0) {
+    comments <- comments_data()
+    
+    if (nrow(comments_data()) == 0) {
       return(p("Aucun commentaire soumis pour le moment."))
     }
     
     tagList(
-      lapply(comments_data$comments, function(comment) {
+      lapply(1:nrow(comments), function(i) {
+        comment <- comments[i, ]
         div(class = "comment",
             p(HTML(paste("<strong>Note :</strong>", paste(rep("★", comment$rating), collapse = "")))),
             p(HTML(paste("<strong>Commentaire :</strong>", comment$text)))
@@ -1731,6 +1783,7 @@ server <- function(input, output, session) {
       })
     )
   })
+  
   
   # Gestion du bouton de soumission
   observeEvent(input$submit_review, {
