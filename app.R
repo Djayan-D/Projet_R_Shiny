@@ -882,6 +882,10 @@ server <- function(input, output, session) {
         showNotification(paste("Bienvenue", input$user_id, "!"), type = "message")
         user_logged(input$user_id)  # Stocke l'utilisateur connecté
         removeModal()
+        
+        ### FIX ICI - Charger les favoris après connexion
+        favorites(load_favorites(input$user_id))  
+        
       } else {
         shinyjs::html("error_message", "❌ Mot de passe incorrect !")
       }
@@ -889,27 +893,28 @@ server <- function(input, output, session) {
   })
   
   
-  observeEvent(input$btn_register, {
-    req(input$user_id, input$password)  # Vérifie que les champs sont remplis
-    
-    users <- load_users()
-    
-    if (input$user_id %in% users$user) {
-      shinyjs::html("error_message", "❌ Nom d'utilisateur déjà pris !")
-    } else {
-      success <- save_user(input$user_id, input$password)
-      
-      if (success) {
-        shinyjs::html("error_message", "")  # Efface les erreurs
-        showNotification("Compte créé avec succès !", type = "message")
-        user_logged(input$user_id)  # Stocke l'utilisateur connecté
-        removeModal()
-      } else {
-        shinyjs::html("error_message", "❌ Erreur lors de la création du compte !")
-      }
-    }
-  })
   
+  observeEvent(input$btn_register, {
+  req(input$user_id, input$password)  # Vérifie que les champs sont remplis
+
+  users <- load_users()
+
+  if (input$user_id %in% users$user) {
+    shinyjs::html("error_message", "❌ Nom d'utilisateur déjà pris !")
+  } else {
+    success <- save_user(input$user_id, input$password)
+    
+    if (success) {
+      shinyjs::html("error_message", "")  # Efface les erreurs
+      showNotification("Compte créé avec succès !", type = "message")
+      user_logged(input$user_id)  # Stocke l'utilisateur connecté
+      removeModal()
+    } else {
+      shinyjs::html("error_message", "❌ Erreur lors de la création du compte !")
+    }
+  }
+})
+
   
   observeEvent(input$cancel_login, {
     removeModal()  # Ferme la fenêtre modale
