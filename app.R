@@ -64,9 +64,12 @@ loginModal <- function() {
     div(style = "padding: 10px; text-align: center;",
         div(id = "error_message", style = "color: red; font-weight: bold; margin-bottom: 10px;"), # Zone d'affichage des erreurs
         textInput("user_id", NULL, placeholder = "Nom d'utilisateur"),
-        passwordInput("password", NULL, placeholder = "Mot de passe")
+        passwordInput("password", NULL, placeholder = "Mot de passe"),
+        
+        # ✅ Ajout du message d'avertissement
+        div(style = "font-size: 12px; color: red; margin-top: 5px;",
+            "⚠️ Ne mettez pas de mot de passe sensible, ils ne sont pas stockés de manière sécurisée.")
     ),
-    
     
     # Boutons en pied de page
     footer = tagList(
@@ -76,6 +79,7 @@ loginModal <- function() {
     )
   )
 }
+
 
 
 
@@ -884,14 +888,19 @@ server <- function(input, output, session) {
         user_logged(input$user_id)  # Stocke l'utilisateur connecté
         removeModal()
         
-        ### FIX ICI - Charger les favoris après connexion
-        favorites(load_favorites(input$user_id))  
+        ### ✅ Mise à jour du bouton "Se connecter" → "Se déconnecter de ..."
+        updateActionButton(session, "open_login", 
+                           label = paste("Se déconnecter de", input$user_id), 
+                           icon = icon("sign-out"))
+        
+        favorites(load_favorites(input$user_id))  # Charger les favoris après connexion
         
       } else {
         shinyjs::html("error_message", "❌ Mot de passe incorrect !")
       }
     }
   })
+  
   
   
   
@@ -935,26 +944,20 @@ server <- function(input, output, session) {
   
   
   observeEvent(input$open_login, {
-    # 🔹 Empêcher l'affichage automatique de la fenêtre de connexion au lancement
-    if (first_load()) {
-      first_load(FALSE)  # Désactive la protection après le premier lancement
-      return()  # Ne fait rien au premier affichage
-    }
-    
-    # 🔹 Vérifie si une autre modale est déjà ouverte et la ferme avant d'en ouvrir une nouvelle
-    removeModal()
-    
-    # 🔹 Gère la connexion/déconnexion proprement
     if (!is.null(user_logged())) {
       showNotification(paste("Déconnexion de", user_logged()), type = "warning")
       user_logged(NULL)  # Déconnecte l'utilisateur
       favorites(data.frame())  # Vide les favoris
-      updateActionButton(session, "open_login", label = "Se connecter", icon = icon("user"))
+      
+      ### ✅ Mise à jour du bouton "Se déconnecter de ..." → "Se connecter"
+      updateActionButton(session, "open_login", 
+                         label = "Se connecter", 
+                         icon = icon("user"))
     } else {
-      # 🔄 Petit délai pour éviter un double affichage
       shinyjs::delay(10, showModal(loginModal()))  
     }
   })
+  
   
   
   
