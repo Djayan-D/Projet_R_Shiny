@@ -955,25 +955,47 @@ server <- function(input, output, session) {
   
   
   observeEvent(input$open_login, {
-  if (!is.null(user_logged())) {
-    showNotification(paste("Déconnexion de", user_logged()), type = "warning")
+    if (!is.null(user_logged())) {
+      showNotification(paste("Déconnexion de", user_logged()), type = "warning")
+      
+      # 🔥 Réinitialisation après déconnexion
+      user_logged(NULL)
+      
+      # ✅ Mise à jour immédiate du bouton
+      updateActionButton(session, "open_login", label = "Se connecter", icon = icon("user"))
+      
+      # ✅ Forcer la mise à jour avec du JavaScript si nécessaire
+      shinyjs::runjs("$('#open_login').html('<i class=\"fa fa-user\"></i> Se connecter');")
+      
+    } else {
+      shinyjs::delay(10, showModal(loginModal()))
+    }
+  })
+  
+  # ✅ Observer le changement de connexion et mettre à jour le bouton en conséquence
+  observeEvent(user_logged(), {
     
-    # 🔥 Réinitialisation après déconnexion
-    user_logged(NULL)
-     # Vide les commentaires
-    
-    updateActionButton(session, "open_login", label = "Se connecter", icon = icon("user"))
-  } else {
-    shinyjs::delay(10, showModal(loginModal()))
-  }
-})
-
-# 🔥 Efface les favoris seulement si l'application redémarre et personne n'est connecté
-observe({
-  if (is.null(user_logged())) {
-    favorites(data.frame())  
-  }
-})
+    if (!is.null(user_logged())) {
+      updateActionButton(session, "open_login", 
+                         label = paste("Se déconnecter de", user_logged()), 
+                         icon = icon("sign-out"))
+      
+      shinyjs::runjs(paste0("$('#open_login').html('<i class=\"fa fa-sign-out\"></i> Se déconnecter de ", user_logged(), "');"))
+      
+    } else {
+      updateActionButton(session, "open_login", label = "Se connecter", icon = icon("user"))
+      
+      shinyjs::runjs("$('#open_login').html('<i class=\"fa fa-user\"></i> Se connecter');")
+    }
+  })
+  
+  # 🔥 Efface les favoris seulement si l'application redémarre et personne n'est connecté
+  observe({
+    if (is.null(user_logged())) {
+      favorites(data.frame())  
+    }
+  })
+  
 
   
   
