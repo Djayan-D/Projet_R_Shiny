@@ -1102,7 +1102,8 @@ observe({
     updated_comments <- rbind(old_comments, new_comment)
     
     comments_data(updated_comments)
-    write.csv(updated_comments, "data/comments.csv", row.names = FALSE)  # 🔹 Sauvegarde propre
+    write.table(new_comment, "data/comments.csv", row.names = FALSE, col.names = FALSE, append = TRUE, sep = ",")
+    
     
     # Réinitialisation
     updateTextInput(session, "comment", value = "")
