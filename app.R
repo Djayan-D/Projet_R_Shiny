@@ -864,6 +864,9 @@ server <- function(input, output, session) {
   
   comments_data <- reactiveVal(data.frame(user = character(), text = character(), rating = numeric(), stringsAsFactors = FALSE))
   
+  if (file.exists("data/comments.csv")) {
+    comments_data(read.csv("data/comments.csv", stringsAsFactors = FALSE))
+  }
   
 
   
@@ -1113,22 +1116,28 @@ observe({
     
     # Mise à jour de l'affichage
     output$comments_ui <- renderUI({
-      tagList(
-        lapply(seq_len(nrow(comments_data())), function(i) {
+      comments <- comments_data()
+      
+      if (nrow(comments) == 0) {
+        return(h4("Aucun commentaire pour l’instant. Soyez le premier !"))
+      }
+      
+      comment_list <- apply(comments, 1, function(row) {
+        tagList(
           div(
-            class = "comment",
-            span(strrep("★", comments_data()$rating[i]), class = "rating-stars"),
-            p(comments_data()$text[i])
+            style = "background-color: #f9f9f9; padding: 10px; border-radius: 8px; margin-bottom: 10px;",
+            h5(strong(row["user"])),  # 🔹 Affiche l’utilisateur qui a posté le commentaire
+            div(
+              style = "color: gold;",
+              paste(rep("★", as.numeric(row["rating"])), collapse = "")  # 🔥 Convertit la note en étoiles
+            ),
+            p(row["text"])
           )
-        })
-      )
+        )
+      })
+      
+      do.call(tagList, comment_list)
     })
-    
-    # Réinitialisation du champ texte et des étoiles
-    updateTextInput(session, "comment", value = "")
-    shinyjs::runjs("resetStars();")
-    
-    showNotification("✅ Commentaire ajouté avec succès !", type = "message")
   })
   
   
@@ -2116,11 +2125,18 @@ observe({
     updated_comments <- rbind(existing_comments, new_comment)
     comments_data(updated_comments)  # ✅ Mise à jour propre
     
+    # ✅ Sauvegarde des commentaires dans `data/comments.csv`
+    write.csv(updated_comments, "data/comments.csv", row.names = FALSE)
+
+    # 🔄 Recharger les commentaires depuis le fichier pour assurer l'affichage à tous
+    comments_data(read.csv("data/comments.csv", stringsAsFactors = FALSE))
+    
     # 🧹 Réinitialisation des champs
     updateTextAreaInput(session, "comment", value = "")
     
     showNotification("Merci pour votre avis !", type = "message")  
-  })
+})
+
   
   
   
