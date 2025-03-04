@@ -862,7 +862,14 @@ button:hover {
 
 server <- function(input, output, session) {
   
-  comments_data <- reactiveVal(data.frame(user = character(), text = character(), rating = numeric(), stringsAsFactors = FALSE))
+  comments_data <- reactiveVal({
+    if (file.exists("data/comments.csv")) {
+      read.csv("data/comments.csv", stringsAsFactors = FALSE)
+    } else {
+      data.frame(user = character(), text = character(), rating = numeric(), stringsAsFactors = FALSE)
+    }
+  })
+  
   
   if (file.exists("data/comments.csv")) {
     comments_data(read.csv("data/comments.csv", stringsAsFactors = FALSE))
@@ -953,7 +960,7 @@ server <- function(input, output, session) {
     
     # 🔥 Réinitialisation après déconnexion
     user_logged(NULL)
-    comments_data(data.frame(text = character(), rating = numeric(), stringsAsFactors = FALSE))  # Vide les commentaires
+     # Vide les commentaires
     
     updateActionButton(session, "open_login", label = "Se connecter", icon = icon("user"))
   } else {
@@ -1112,7 +1119,8 @@ observe({
     updated_comments <- rbind(existing_comments, new_comment)
     
     # ✅ Sauvegarde propre des commentaires
-    comments_data(updated_comments)  # ⚠️ Assurez-vous que cette ligne met bien à jour une data frame
+    write.csv(updated_comments, "data/comments.csv", row.names = FALSE)
+    # ⚠️ Assurez-vous que cette ligne met bien à jour une data frame
     
     # Mise à jour de l'affichage
     output$comments_ui <- renderUI({
