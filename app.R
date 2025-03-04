@@ -860,9 +860,10 @@ button:hover {
 
 #---------- 4. SERVEUR ----------
 
-comments_data <- reactiveVal(data.frame(text = character(), rating = numeric(), stringsAsFactors = FALSE))
-
 server <- function(input, output, session) {
+  
+  comments_data <- reactiveVal(data.frame(user = character(), text = character(), rating = numeric(), stringsAsFactors = FALSE))
+  
   
 
   
@@ -1084,31 +1085,54 @@ observe({
   
   
   observeEvent(input$submit_review, {
-    req(input$comment, input$rating)  # Vérifie que le commentaire et la note sont bien remplis
+    req(input$comment, input$rating) 
     
-    if (is.null(user_logged())) {  # 🔥 Vérifie si un utilisateur est connecté
+    if (is.null(user_logged())) {  
       showNotification("❌ Vous devez être connecté pour laisser un avis !", type = "error")
       return()
     }
     
+    # 🔄 Vérifier que comments_data est bien une data frame
+    if (!is.data.frame(comments_data())) {
+      showNotification("⚠️ Erreur interne : comments_data corrompu. Réinitialisation...", type = "warning")
+      comments_data(data.frame(user = character(), text = character(), rating = numeric(), stringsAsFactors = FALSE))
+    }
+    
     new_comment <- data.frame(
-      user = user_logged(),  # 🔥 Utilisation du pseudo connecté au lieu de input$user_id
-      text = input$comment,
-      rating = input$rating,
+      user = user_logged(),  
+      text = as.character(input$comment),  
+      rating = as.numeric(input$rating),  
       stringsAsFactors = FALSE
     )
     
-    old_comments <- comments_data()
-    updated_comments <- rbind(old_comments, new_comment)
+    existing_comments <- comments_data()
+    updated_comments <- rbind(existing_comments, new_comment)
     
-    comments_data(updated_comments)
-    write.table(new_comment, "data/comments.csv", row.names = FALSE, col.names = FALSE, append = TRUE, sep = ",")
+    # ✅ Sauvegarde propre des commentaires
+    comments_data(updated_comments)  # ⚠️ Assurez-vous que cette ligne met bien à jour une data frame
     
+    # Mise à jour de l'affichage
+    output$comments_ui <- renderUI({
+      tagList(
+        lapply(seq_len(nrow(comments_data())), function(i) {
+          div(
+            class = "comment",
+            span(strrep("★", comments_data()$rating[i]), class = "rating-stars"),
+            p(comments_data()$text[i])
+          )
+        })
+      )
+    })
     
-    # Réinitialisation
+    # Réinitialisation du champ texte et des étoiles
     updateTextInput(session, "comment", value = "")
-    shinyjs::runjs("resetStars();")  
+    shinyjs::runjs("resetStars();")
+    
+    showNotification("✅ Commentaire ajouté avec succès !", type = "message")
   })
+  
+  
+  
   
   
   
@@ -2024,7 +2048,8 @@ observe({
   
 
   # Liste réactive pour stocker les commentaires
-  comments_data <- reactiveValues(comments = list())
+  comments_data <- reactiveVal(read.csv("data/comments.csv", stringsAsFactors = FALSE))
+  
   
   # Affichage des commentaires
   output$comments_ui <- renderUI({
@@ -2041,7 +2066,7 @@ observe({
           h5(strong(row["user"])),  # 🔹 Affiche l’utilisateur
           div(
             style = "color: gold;",
-            paste(rep("★", row["rating"]), collapse = "")
+            paste(rep("★", as.numeric(row["rating"])), collapse = "")  # 🔥 Convertit en numérique pour éviter des erreurs
           ),
           p(row["text"])
         )
@@ -2053,9 +2078,10 @@ observe({
   
   
   
+  
   # Gestion du bouton de soumission
   observeEvent(input$submit_review, {
-    if (is.null(user_logged()) || user_logged() == "") {  # Vérifie si l'utilisateur est connecté
+    if (is.null(user_logged()) || user_logged() == "") {  
       return()  # Stoppe ici si l'utilisateur n'est pas connecté
     }
     
@@ -2069,15 +2095,35 @@ observe({
       return()
     }
     
-    # Ajouter le nouveau commentaire à la liste existante
-    new_comment <- list(rating = input$rating, text = input$comment)
-    comments_data$comments <- c(comments_data$comments, list(new_comment))
+    # 🔄 Vérifier si `comments_data()` a bien les 3 colonnes attendues
+    if (!is.data.frame(comments_data()) || !all(c("user", "text", "rating") %in% colnames(comments_data()))) {
+      showNotification("⚠️ Erreur interne : comments_data corrompu. Réinitialisation...", type = "warning")
+      comments_data(data.frame(user = character(), text = character(), rating = numeric(), stringsAsFactors = FALSE))
+    }
     
-    # Vider le champ texte et réinitialiser la note
+    # 🔥 Création du nouveau commentaire avec les 3 colonnes
+    new_comment <- data.frame(
+      user = as.character(user_logged()),  # Ajout du nom de l'utilisateur
+      text = as.character(input$comment),
+      rating = as.numeric(input$rating),
+      stringsAsFactors = FALSE
+    )
+    
+    # 🔍 Vérifier que `existing_comments` a bien les 3 colonnes
+    existing_comments <- comments_data()[, c("user", "text", "rating"), drop = FALSE]  
+    
+    # 🔗 Fusionner les commentaires existants avec le nouveau
+    updated_comments <- rbind(existing_comments, new_comment)
+    comments_data(updated_comments)  # ✅ Mise à jour propre
+    
+    # 🧹 Réinitialisation des champs
     updateTextAreaInput(session, "comment", value = "")
     
-    showNotification("Merci pour votre avis !", type = "message")  # Ce message ne s'affiche plus si l'utilisateur est déconnecté
+    showNotification("Merci pour votre avis !", type = "message")  
   })
+  
+  
+  
   
   
   
