@@ -863,7 +863,8 @@ server <- function(input, output, session) {
 
   
   
-  first_load <- reactiveVal(TRUE)  # Indique que c'est le premier chargement
+  first_load <- reactiveVal(TRUE)  # Variable qui empêche l'affichage initial du login
+  
   
   user_logged <- reactiveVal(NULL)  # Stocke le nom d'utilisateur connecté
   
@@ -917,8 +918,18 @@ server <- function(input, output, session) {
 
   
   observeEvent(input$cancel_login, {
-    removeModal()  # Ferme la fenêtre modale
+    updateTextInput(session, "user_id", value = "")
+    updateTextInput(session, "password", value = "")
+    shinyjs::html("error_message", "")  # Effacer les messages d'erreur
+    user_logged(NULL)  # Réinitialiser l'utilisateur connecté
+    removeModal()  # Fermer la fenêtre modale proprement
+    
+    # Ajout d'un délai avant de rendre le bouton actif pour éviter un bug
+    shinyjs::delay(500, shinyjs::runjs("document.getElementById('open_login').focus();"))
   })
+  
+  
+  
   
   
   
@@ -926,21 +937,27 @@ server <- function(input, output, session) {
   observeEvent(input$open_login, {
     # 🔹 Empêcher l'affichage automatique de la fenêtre de connexion au lancement
     if (first_load()) {
-      first_load(FALSE)  # Désactive la protection après le premier clic
-      return()
+      first_load(FALSE)  # Désactive la protection après le premier lancement
+      return()  # Ne fait rien au premier affichage
     }
     
-    if (is.null(user_logged())) {
-      # 🔹 Si l'utilisateur n'est pas connecté, ouvrir la fenêtre de connexion
-      showModal(loginModal())
-    } else {
-      # 🔹 Si l'utilisateur est connecté, alors il se déconnecte
+    # 🔹 Vérifie si une autre modale est déjà ouverte et la ferme avant d'en ouvrir une nouvelle
+    removeModal()
+    
+    # 🔹 Gère la connexion/déconnexion proprement
+    if (!is.null(user_logged())) {
       showNotification(paste("Déconnexion de", user_logged()), type = "warning")
-      user_logged(NULL)  # Réinitialise l'utilisateur
+      user_logged(NULL)  # Déconnecte l'utilisateur
       favorites(data.frame())  # Vide les favoris
       updateActionButton(session, "open_login", label = "Se connecter", icon = icon("user"))
+    } else {
+      # 🔄 Petit délai pour éviter un double affichage
+      shinyjs::delay(10, showModal(loginModal()))  
     }
   })
+  
+  
+  
   
   
   
@@ -1005,9 +1022,8 @@ server <- function(input, output, session) {
   
   comments_data <- reactiveVal(data.frame(text = character(), rating = numeric(), stringsAsFactors = FALSE))
   
-  observeEvent(input$open_login, {
-    showModal(loginModal())  # Affiche la fenêtre modale quand on clique sur "Se connecter"
-  })
+  
+  
   
   observeEvent(input$validate_login, {
     req(input$user_id, input$password)  # Vérifie que les champs ne sont pas vides
