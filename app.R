@@ -944,21 +944,26 @@ server <- function(input, output, session) {
   
   
   observeEvent(input$open_login, {
-    if (!is.null(user_logged())) {
-      showNotification(paste("Déconnexion de", user_logged()), type = "warning")
-      user_logged(NULL)  # Déconnecte l'utilisateur
-      favorites(data.frame())  # Vide les favoris
-      
-      ### ✅ Mise à jour du bouton "Se déconnecter de ..." → "Se connecter"
-      updateActionButton(session, "open_login", 
-                         label = "Se connecter", 
-                         icon = icon("user"))
-    } else {
-      shinyjs::delay(10, showModal(loginModal()))  
-    }
-  })
-  
-  
+  if (!is.null(user_logged())) {
+    showNotification(paste("Déconnexion de", user_logged()), type = "warning")
+    
+    # 🔥 Réinitialisation après déconnexion
+    user_logged(NULL)
+    comments_data(data.frame(text = character(), rating = numeric(), stringsAsFactors = FALSE))  # Vide les commentaires
+    
+    updateActionButton(session, "open_login", label = "Se connecter", icon = icon("user"))
+  } else {
+    shinyjs::delay(10, showModal(loginModal()))
+  }
+})
+
+# 🔥 Efface les favoris seulement si l'application redémarre et personne n'est connecté
+observe({
+  if (is.null(user_logged())) {
+    favorites(data.frame())  
+  }
+})
+
   
   
   
@@ -1079,10 +1084,15 @@ server <- function(input, output, session) {
   
   
   observeEvent(input$submit_review, {
-    req(input$user_id, input$comment, input$rating)  # Vérifie que tout est rempli
+    req(input$comment, input$rating)  # Vérifie que le commentaire et la note sont bien remplis
+    
+    if (is.null(user_logged())) {  # 🔥 Vérifie si un utilisateur est connecté
+      showNotification("❌ Vous devez être connecté pour laisser un avis !", type = "error")
+      return()
+    }
     
     new_comment <- data.frame(
-      user = input$user_id,  # 🔹 Ajoute l'identifiant de l'utilisateur
+      user = user_logged(),  # 🔥 Utilisation du pseudo connecté au lieu de input$user_id
       text = input$comment,
       rating = input$rating,
       stringsAsFactors = FALSE
@@ -1092,12 +1102,13 @@ server <- function(input, output, session) {
     updated_comments <- rbind(old_comments, new_comment)
     
     comments_data(updated_comments)
-    write.csv(updated_comments, "data/comments.csv", row.names = FALSE)  # 🔹 Sauvegarde
+    write.csv(updated_comments, "data/comments.csv", row.names = FALSE)  # 🔹 Sauvegarde propre
     
     # Réinitialisation
     updateTextInput(session, "comment", value = "")
     shinyjs::runjs("resetStars();")  
   })
+  
   
   
   
@@ -1881,7 +1892,7 @@ server <- function(input, output, session) {
   #----- FAVORIS -----
   manage_favorites <- function(button_id) {
     observeEvent(input[[button_id]], {
-      req(input$user_id, selected_recipe())  
+      req(selected_recipe())  # 🔥 Vérifie qu'une recette est sélectionnée
       
       new_recipe <- selected_recipe()
       new_recipe <- new_recipe[, !colnames(new_recipe) %in% c("name_lower", "ingr_lower", "score")]
@@ -1890,11 +1901,15 @@ server <- function(input, output, session) {
       if (nrow(current_fav) > 0 && new_recipe$name %in% current_fav$name) {
         updated_fav <- current_fav[current_fav$name != new_recipe$name, ]
         favorites(updated_fav)
-        save_favorites(input$user_id, updated_fav)
+        
+        # 🔥 Sauvegarde seulement si l'utilisateur est connecté
+        if (!is.null(user_logged())) {
+          save_favorites(user_logged(), updated_fav)
+        }
+        
         shinyjs::runjs(paste0("$('#", button_id, "').css('color', 'grey');"))
         showNotification("Recette retirée des favoris", type = "warning")
         
-        # 🔹 Revenir à l'onglet "Liste des favoris" après suppression
         updateTabsetPanel(session, "favoris_tabs", selected = "Liste des favoris")
         
       } else {
@@ -1908,12 +1923,19 @@ server <- function(input, output, session) {
         }
         
         favorites(updated_fav)
-        save_favorites(input$user_id, updated_fav)
+        
+        # 🔥 Sauvegarde seulement si l'utilisateur est connecté
+        if (!is.null(user_logged())) {
+          save_favorites(user_logged(), updated_fav)
+        }
+        
         shinyjs::runjs(paste0("$('#", button_id, "').css('color', 'red');"))
         showNotification("Recette ajoutée aux favoris", type = "message")
       }
     })
   }
+  
+  
   
   
   manage_favorites("add_to_fav_carac")
@@ -2032,6 +2054,10 @@ server <- function(input, output, session) {
   
   # Gestion du bouton de soumission
   observeEvent(input$submit_review, {
+    if (is.null(user_logged()) || user_logged() == "") {  # Vérifie si l'utilisateur est connecté
+      return()  # Stoppe ici si l'utilisateur n'est pas connecté
+    }
+    
     if (is.null(input$rating) || input$rating == 0) {
       showNotification("Veuillez sélectionner une note.", type = "warning")
       return()
@@ -2048,8 +2074,10 @@ server <- function(input, output, session) {
     
     # Vider le champ texte et réinitialiser la note
     updateTextAreaInput(session, "comment", value = "")
-    showNotification("Merci pour votre avis !", type = "message")
+    
+    showNotification("Merci pour votre avis !", type = "message")  # Ce message ne s'affiche plus si l'utilisateur est déconnecté
   })
+  
   
   
   
